@@ -1,0 +1,346 @@
+import 'dart:convert';
+import 'dart:io';
+import 'dart:typed_data';
+
+import 'package:activity_tracker/view/homescreen/widget/activity_sections/shared_widgets.dart';
+import 'package:activity_tracker/viewmodel/activity_dash_view_model.dart';
+import 'package:file_picker/file_picker.dart';
+import 'package:flutter/material.dart';
+import 'package:http/http.dart';
+import 'package:provider/provider.dart';
+
+class SupportingDocsSection extends StatefulWidget {
+  final VoidCallback? onSaved;
+  final VoidCallback? onSkip;
+
+  const SupportingDocsSection({super.key, this.onSaved, this.onSkip});
+
+  @override
+  State<SupportingDocsSection> createState() =>
+      _SupportingDocsSectionState();
+}
+
+class _SupportingDocsSectionState extends State<SupportingDocsSection> {
+  List<DocumentData> _docs = [];
+
+  @override
+  void initState() {
+    super.initState();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _fetchDocs();
+    });
+  }
+
+  /// ✅ FETCH API DATA
+  Future<void> _fetchDocs() async {
+    final vm = context.read<ActivityDashViewModel>();
+
+    await vm.fetchSupportingDocs();
+
+    setState(() {
+      _docs = vm.supportingDocsList.map((e) {
+        return DocumentData(
+          label: e.supDescription ?? "No Name",
+          isUploaded: true,
+          isEditable: false,
+        );
+      }).toList();
+    });
+  }
+
+  /// ➕ ADD DOC (TEXTFIELD OPEN)
+  void _addDoc() {
+    setState(() {
+      _docs.add(
+        DocumentData(
+          label: '',
+          isUploaded: false,
+          isEditable: true,
+        ),
+      );
+    });
+  }
+
+  /// 📤 UPLOAD
+  Future<void> _handleUpload(int index) async {
+    final vm = context.read<ActivityDashViewModel>();
+    final doc = _docs[index];
+
+    if (doc.label.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Enter document name")),
+      );
+      return;
+    }
+
+    try {
+    final result = await FilePicker.pickFiles(
+      withData: true,
+    );
+
+      if (result == null) return;
+
+      final file = result.files.first;
+
+      Uint8List? bytes = file.bytes;
+
+      if (bytes == null && file.path != null) {
+        bytes = await File(file.path!).readAsBytes();
+      }
+
+      if (bytes == null) {
+        throw Exception("File bytes null");
+      }
+
+      final base64File = base64Encode(bytes);
+      final ext = file.extension ?? '';
+
+      final success = await vm.uploadSupportingDocument(
+        activityId: 40,
+        userId: "5",
+        description: doc.label,
+        fileBytes: base64File,
+        fileExt: ext,
+      );
+
+      if (success) {
+        setState(() {
+          doc.isUploaded = true;
+          doc.isEditable = false;
+        });
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("${doc.label} uploaded")),
+        );
+      } else {
+        throw Exception("Upload failed");
+      }
+    } catch (e) {
+      debugPrint("Upload Error: $e");
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Upload Failed")),
+      );
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final primary = Theme.of(context).colorScheme.primary;
+
+    return Consumer<ActivityDashViewModel>(
+      builder: (context, vm, child) {
+        if (vm.isLoadingSupportingDocs) {
+          return const Center(child: CircularProgressIndicator());
+        }
+
+        return Column(
+          children: [
+            const SizedBox(height: 16),
+
+            ..._docs.asMap().entries.map((entry) {
+              final i = entry.key;
+              final doc = entry.value;
+
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 12),
+
+                /// ✏️ EDIT MODE (TEXTFIELD)
+                child: doc.isEditable
+                    ? Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 14, vertical: 10),
+                        decoration: BoxDecoration(
+                          color: Colors.grey.shade100,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: TextField(
+                                autofocus: true,
+                                onChanged: (val) => doc.label = val,
+                                decoration: const InputDecoration(
+                                  hintText: "Enter document name",
+                                  border: InputBorder.none,
+                                ),
+                              ),
+                            ),
+                            IconButton(
+                              icon: const Icon(Icons.check),
+                              onPressed: () {
+                                if (doc.label.trim().isEmpty) return;
+
+                                setState(() {
+                                  doc.isEditable = false;
+                                });
+                              },
+                            )
+                          ],
+                        ),
+                      )
+
+                    /// 📁 FILE CARD
+                    : FileCard(
+                        label: doc.label,
+                        isUploaded: doc.isUploaded,
+
+                        /// ❌ disable after upload
+                        onUpload: doc.isUploaded
+                            ? null
+                            : () => _handleUpload(i),
+                      ),
+              );
+            }),
+
+            /// ➕ ADD BUTTON
+            TextButton.icon(
+              onPressed: _addDoc,
+              icon: Icon(Icons.add_circle_outline, color: primary),
+              label: Text(
+                'Add New Supporting Doc',
+                style: TextStyle(color: primary),
+              ),
+            ),
+
+            const SizedBox(height: 20),
+
+            /// ACTION BUTTONS
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton(
+                    onPressed: widget.onSkip,
+                    child: const Text('Skip to Next'),
+                  ),
+                ),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: ElevatedButton(
+                    onPressed: widget.onSaved,
+                    child: const Text('Save & Next'),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        );
+      },
+    );
+  }
+}
+
+
+
+// import 'package:flutter/material.dart';
+// import 'shared_widgets.dart';
+
+// class SupportingDocsSection extends StatefulWidget {
+//   final VoidCallback? onSaved;
+//     // final VoidCallback? onSaved;
+//   final VoidCallback? onSkip;
+//   const SupportingDocsSection({Key? key, this.onSaved, this.onSkip}) : super(key: key);
+
+//   @override
+//   State<SupportingDocsSection> createState() => _SupportingDocsSectionState();
+// }
+
+// class _SupportingDocsSectionState extends State<SupportingDocsSection> {
+//   final List<DocumentData> _supportingDocs = [
+//     DocumentData(label: 'Creative', isUploaded: true),
+//     DocumentData(label: 'Creative 2', isUploaded: true),
+//   ];
+
+//   void _addSupportingDoc() {
+//     setState(() {
+//       _supportingDocs.add(DocumentData(label: 'New Document'));
+//     });
+//   }
+
+//   @override
+//   Widget build(BuildContext context) {
+//     return Column(
+//       children: [
+//         ..._supportingDocs.map(
+//           (doc) => Padding(
+//             padding: const EdgeInsets.only(bottom: 16),
+//             child: FileCard(label: doc.label, isUploaded: doc.isUploaded),
+//           ),
+//         ),
+//         TextButton.icon(
+//           onPressed: _addSupportingDoc,
+//           icon: Icon(
+//             Icons.add_circle_outline,
+//             color: Theme.of(context).colorScheme.primary,
+//             size: 20,
+//           ),
+//           label: const Text(
+//             'Add New Supporting Doc',
+//             style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+//           ),
+//           style: TextButton.styleFrom(
+//             padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 20),
+//             backgroundColor: Theme.of(
+//               context,
+//             ).colorScheme.primary.withOpacity(0.05),
+//             shape: RoundedRectangleBorder(
+//               borderRadius: BorderRadius.circular(12),
+//             ),
+//           ),
+//         ),
+//         if (widget.onSaved != null)
+//           Padding(
+//             padding: const EdgeInsets.only(top: 12),
+//             child: Row(
+//           children: [
+//             // Skip to Next
+//             Expanded(
+//               child: OutlinedButton(
+//                 onPressed: widget.onSkip,
+//                 style: OutlinedButton.styleFrom(
+//                   padding: const EdgeInsets.symmetric(vertical: 16),
+//                   side: BorderSide(color: Colors.grey.shade300),
+//                   shape: RoundedRectangleBorder(
+//                     borderRadius: BorderRadius.circular(14),
+//                   ),
+//                 ),
+//                 child: const Text(
+//                   'Skip to Next',
+//                   style: TextStyle(
+//                     color: Colors.black87,
+//                     fontWeight: FontWeight.w500,
+//                   ),
+//                 ),
+//               ),
+//             ),
+//             const SizedBox(width: 14),
+//             // Save & Next
+//             Expanded(
+//               child: ElevatedButton(
+//                 onPressed: widget.onSaved,
+//                 style: ElevatedButton.styleFrom(
+//                   backgroundColor: const Color(0xFF2D3A8C),
+//                   padding: const EdgeInsets.symmetric(vertical: 16),
+//                   shape: RoundedRectangleBorder(
+//                     borderRadius: BorderRadius.circular(14),
+//                   ),
+//                   elevation: 0,
+//                 ),
+//                 child: const Text(
+//                   'Save & Next',
+//                   style: TextStyle(
+//                     color: Colors.white,
+//                     fontWeight: FontWeight.w600,
+//                     fontSize: 15,
+//                   ),
+//                 ),
+//               ),
+//             ),
+//           ],
+//         ),
+//           ),
+//       ],
+//     );
+//   }
+// }
