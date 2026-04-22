@@ -226,7 +226,8 @@ class _LoginScreenState extends State<LoginScreen>
             context,
             MaterialPageRoute(
               builder: (context) =>
-                  EditActivityScreen(vm: _activityDashViewModel),
+              ActivityTrackerDashboard()
+                 // EditActivityScreen(vm: _activityDashViewModel),
             ),
           );
         }
@@ -258,63 +259,268 @@ class _LoginScreenState extends State<LoginScreen>
   }
 
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.white,
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            FadeTransition(
-              opacity: _imageFade,
-              child: SlideTransition(
-                position: _imageSlide,
-                child: Container(
-                  width: double.infinity,
-                  height: MediaQuery.of(context).size.height * 0.42,
-                  decoration: const BoxDecoration(
-                    color: Color(0xFFF8F8FD),
-                    borderRadius: BorderRadius.only(
-                      bottomLeft: Radius.circular(80),
-                      bottomRight: Radius.circular(80),
+  // Widget build(BuildContext context) {
+  //   return Scaffold(
+  //     backgroundColor: Colors.white,
+  //     body: SingleChildScrollView(
+  //       child: Column(
+  //         children: [
+  //           FadeTransition(
+  //             opacity: _imageFade,
+  //             child: SlideTransition(
+  //               position: _imageSlide,
+  //               child: Container(
+  //                 width: double.infinity,
+  //                 height: MediaQuery.of(context).size.height * 0.42,
+  //                 decoration: const BoxDecoration(
+  //                   color: Color(0xFFF8F8FD),
+  //                   borderRadius: BorderRadius.only(
+  //                     bottomLeft: Radius.circular(80),
+  //                     bottomRight: Radius.circular(80),
+  //                   ),
+  //                 ),
+  //                 child: Center(
+  //                   child: Image.asset(
+  //                     'assets/images/log_icon.png',
+  //                     height: 160,
+  //                     fit: BoxFit.contain,
+  //                   ),
+  //                 ),
+  //               ),
+  //             ),
+  //           ),
+  //           Padding(
+  //             padding: const EdgeInsets.fromLTRB(30, 40, 30, 40),
+  //             child: AnimatedSwitcher(
+  //               duration: const Duration(milliseconds: 400),
+  //               transitionBuilder: (Widget child, Animation<double> animation) {
+  //                 return FadeTransition(
+  //                   opacity: animation,
+  //                   child: SlideTransition(
+  //                     position: Tween<Offset>(
+  //                       begin: const Offset(0.1, 0),
+  //                       end: Offset.zero,
+  //                     ).animate(animation),
+  //                     child: child,
+  //                   ),
+  //                 );
+  //               },
+  //               child: _currentStep == LoginStep.mobile
+  //                   ? _buildMobileInput()
+  //                   : _buildOtpInput(),
+  //             ),
+  //           ),
+  //         ],
+  //       ),
+  //     ),
+  //   );
+  // }
+  @override
+Widget build(BuildContext context) {
+  final isWeb = MediaQuery.of(context).size.width > 900;
+
+  return Scaffold(
+    backgroundColor: Colors.white,
+    body: isWeb ? _buildWebLayout() : _buildMobileLayout(),
+  );
+}
+
+// Widget _buildWebLayout() {
+//   return Container(
+//     color: Colors.white,
+//     child: Row(
+//       children: [
+//         Expanded(
+//           flex: 5,
+//           child: Container(
+//             height:
+//             //double.infinity,
+//             MediaQuery.of(  context).size.height*0.7,
+//             width:MediaQuery.of(  context).size.width*0.3,
+//             // double.infinity,
+//             padding: const EdgeInsets.all(40),
+//             decoration: BoxDecoration(
+//               color: const Color(0xFFF8F8FD), // 👈 subtle difference
+//               borderRadius: const BorderRadius.only(
+//                 topRight: Radius.circular(60),
+//                 bottomRight: Radius.circular(60),
+//               ),
+//             ),
+//             child: Center(
+//               child: Column(
+//                 mainAxisAlignment: MainAxisAlignment.center,
+//                 children: [
+//                   Image.asset(
+//                     'assets/images/log_icon.png',
+//                     height: 180,
+//                   ),
+//                   const SizedBox(height: 20),
+//                   const Text(
+//                     "Welcome Back 👋",
+//                     style: TextStyle(
+//                       fontSize: 26,
+//                       fontWeight: FontWeight.w800,
+//                       color: Color(0xFF1E1E2C),
+//                     ),
+//                   ),
+//                   const SizedBox(height: 10),
+//                   const Text(
+//                     "Login to continue your journey",
+//                     style: TextStyle(
+//                       fontSize: 14,
+//                       color: Color(0xFF7D7D8F),
+//                     ),
+//                   ),
+//                 ],
+//               ),
+//             ),
+//           ),
+//         ),
+
+//         // RIGHT SIDE (LOGIN)
+//         Expanded(
+//           flex: 4,
+//           child: Center(
+//             child: SingleChildScrollView(
+//               child: Container(
+//                 constraints: const BoxConstraints(maxWidth: 400),
+//                 padding: const EdgeInsets.all(40),
+//                 decoration: BoxDecoration(
+//                   color: Colors.white,
+//                   borderRadius: BorderRadius.circular(20),
+//                   boxShadow: [
+//                     BoxShadow(
+//                       color: Colors.black.withValues(alpha: 0.05),
+//                       blurRadius: 20,
+//                       offset: const Offset(0, 10),
+//                     )
+//                   ],
+//                 ),
+//                 child: AnimatedSwitcher(
+//                   duration: const Duration(milliseconds: 400),
+//                   child: _currentStep == LoginStep.mobile
+//                       ? _buildMobileInput()
+//                       : _buildOtpInput(),
+//                 ),
+//               ),
+//             ),
+//           ),
+//         ),
+//       ],
+//     ),
+//   );
+// }
+Widget _buildWebLayout() {
+  return Row(
+    children: [
+      // LEFT SIDE (IMAGE)
+      Expanded(
+        flex: 5,
+        child: Container(
+          height: double.infinity,
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              colors: [Color(0xFF3D3BF3), Color(0xFF6A6AFB)],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+          ),
+          child: Center(
+            child: Padding(
+              padding: const EdgeInsets.all(40),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Image.asset(
+                    'assets/images/log_icon.png',
+                    height: 200,
+                  ),
+                  const SizedBox(height: 30),
+                  const Text(
+                    "Welcome to Activity Tracker",
+                    style: TextStyle(
+                      fontSize: 28,
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
                     ),
                   ),
-                  child: Center(
-                    child: Image.asset(
-                      'assets/images/log_icon.png',
-                      height: 160,
-                      fit: BoxFit.contain,
+                  const SizedBox(height: 10),
+                  const Text(
+                    "Track. Manage. Grow.",
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: Colors.white70,
                     ),
                   ),
-                ),
+                ],
               ),
             ),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(30, 40, 30, 40),
+          ),
+        ),
+      ),
+
+      // RIGHT SIDE (LOGIN)
+      Expanded(
+        flex: 4,
+        child: Center(
+          child: SingleChildScrollView(
+            child: Container(
+              constraints: const BoxConstraints(maxWidth: 400),
+              padding: const EdgeInsets.all(40),
               child: AnimatedSwitcher(
                 duration: const Duration(milliseconds: 400),
-                transitionBuilder: (Widget child, Animation<double> animation) {
-                  return FadeTransition(
-                    opacity: animation,
-                    child: SlideTransition(
-                      position: Tween<Offset>(
-                        begin: const Offset(0.1, 0),
-                        end: Offset.zero,
-                      ).animate(animation),
-                      child: child,
-                    ),
-                  );
-                },
                 child: _currentStep == LoginStep.mobile
                     ? _buildMobileInput()
                     : _buildOtpInput(),
               ),
             ),
-          ],
+          ),
         ),
       ),
-    );
-  }
+    ],
+  );
+}
 
+Widget _buildMobileLayout() {
+  return SingleChildScrollView(
+    child: Column(
+      children: [
+        FadeTransition(
+          opacity: _imageFade,
+          child: SlideTransition(
+            position: _imageSlide,
+            child: Container(
+              width: double.infinity,
+              height: MediaQuery.of(context).size.height * 0.42,
+              decoration: const BoxDecoration(
+                color: Color(0xFFF8F8FD),
+                borderRadius: BorderRadius.only(
+                  bottomLeft: Radius.circular(80),
+                  bottomRight: Radius.circular(80),
+                ),
+              ),
+              child: Center(
+                child: Image.asset(
+                  'assets/images/log_icon.png',
+                  height: 160,
+                ),
+              ),
+            ),
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.all(30),
+          child: AnimatedSwitcher(
+            duration: const Duration(milliseconds: 400),
+            child: _currentStep == LoginStep.mobile
+                ? _buildMobileInput()
+                : _buildOtpInput(),
+          ),
+        ),
+      ],
+    ),
+  );
+}
   Widget _buildMobileInput() {
     return Column(
       key: const ValueKey('mobile_input'),

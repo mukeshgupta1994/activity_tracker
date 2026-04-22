@@ -3,7 +3,6 @@
 #
 
 list(APPEND FLUTTER_PLUGIN_LIST
-  firebase_core
   geolocator_windows
   rive_native
   url_launcher_windows

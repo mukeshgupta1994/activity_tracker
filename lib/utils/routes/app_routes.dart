@@ -1,4 +1,5 @@
 import 'package:activity_tracker/data/local/hive_helper.dart';
+import 'package:activity_tracker/view/homescreen/home_screen.dart';
 import 'package:activity_tracker/view/login%20screen/send_otp.dart';
 import 'package:activity_tracker/view/login%20screen/verify_otp.dart';
 import 'package:activity_tracker/view/splash%20screen/splash_screen.dart';
@@ -10,9 +11,6 @@ class AppRoutes {
   static String verifyOtpScreenRoute = '/authenticate';
   static String activitytrackerdashboard = '/activity-tracker-dashboard';
   static String editActivityScreen = '/Edit-Activity-Screen';
-
-
-  
 }
 
 final goRouter = GoRouter(
@@ -20,7 +18,7 @@ final goRouter = GoRouter(
   redirect: (context, state) {
     final location = state.matchedLocation;
     if (!HiveHelper.isLoggedIn) {
-      if (location == AppRoutes.editActivityScreen ||
+      if (location == AppRoutes.activitytrackerdashboard ||
           ![
             AppRoutes.splashScreenRoute,
             AppRoutes.loginScreenRoute,
@@ -31,7 +29,8 @@ final goRouter = GoRouter(
     } else {
       if (location == AppRoutes.loginScreenRoute ||
           location == AppRoutes.verifyOtpScreenRoute) {
-        return AppRoutes.editActivityScreen;
+        return AppRoutes.activitytrackerdashboard;
+        //AppRoutes.editActivityScreen;
       }
     }
     return null;
@@ -48,7 +47,7 @@ final goRouter = GoRouter(
       path: AppRoutes.splashScreenRoute,
       builder: (context, state) => const SplashScreen(),
     ),
-   
+
     GoRoute(
       path: AppRoutes.loginScreenRoute,
       pageBuilder: (context, state) =>
@@ -58,6 +57,11 @@ final goRouter = GoRouter(
       path: AppRoutes.verifyOtpScreenRoute,
       pageBuilder: (context, state) =>
           const NoTransitionPage(child: VerifyOtpScreen()),
+    ),
+    GoRoute(
+      path: AppRoutes.activitytrackerdashboard,
+      pageBuilder: (context, state) =>
+          const NoTransitionPage(child: ActivityTrackerDashboard()),
     ),
   ],
 );

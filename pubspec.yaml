@@ -51,8 +51,9 @@ dependencies:
   pin_code_fields: ^9.3.0
   flutter_local_notifications: ^21.0.0
   geolocator: ^14.0.2
-  firebase_core: ^2.32.0
-  firebase_messaging: ^14.7.10
+  # Firebase removed for web compatibility - use only on mobile
+  # firebase_core: ^2.32.0
+  # firebase_messaging: ^14.7.10
   bloc_notification: ^1.1.2+1
   flutter_bloc: ^8.1.6
   responsive_framework: ^1.5.1

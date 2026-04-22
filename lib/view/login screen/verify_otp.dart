@@ -121,7 +121,9 @@ late ActivityDashViewModel _activityViewModel;
     await context.read<LoginViewModel>().fetchVerifyOtp();
     final lvm = context.read<LoginViewModel>();
     if (lvm.verifyOtpStatus.status == ApiResponse.completed && lvm.isLoggedIn) {
-      if (mounted) Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) =>  EditActivityScreen(vm: _activityViewModel,)));
+      if (mounted) Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => ActivityTrackerDashboard()
+    //   EditActivityScreen(vm: _activityViewModel,)
+       ));
     } else if (lvm.verifyOtpStatus.status == ApiResponse.error) {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(lvm.verifyOtpStatus.message ?? 'Error')));
     }

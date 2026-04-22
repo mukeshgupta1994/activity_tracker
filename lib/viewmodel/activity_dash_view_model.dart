@@ -1,4 +1,5 @@
 import 'package:activity_tracker/data/remote/response/api_response.dart';
+import 'package:activity_tracker/models/response_models/activity_dashboard/Activation_DashBoard_Response.dart';
 import 'package:activity_tracker/models/response_models/activity_details/activity_dropdown_response.dart';
 import 'package:activity_tracker/models/response_models/activity_details/activity_dropdownupdate_response.dart';
 import 'package:activity_tracker/models/response_models/agency_details/agency_update_response.dart';
@@ -198,7 +199,8 @@ class ActivityDashViewModel extends ChangeNotifier {
     _mediumList.clear();
     _selectedMedium = null;
     _agencyUpdateStatus = ApiResponse.none();
-
+    // _dashboardList.clear();
+    // _dashboardStatus = ApiResponse.none();
     notifyListeners();
   }
 
@@ -329,45 +331,44 @@ class ActivityDashViewModel extends ChangeNotifier {
   }
 
   // ================= EXECUTION UPDATE ==================
-ApiResponse<ExecutionUpdateResponse> _executionUpdateStatus =
-    ApiResponse.none();
+  ApiResponse<ExecutionUpdateResponse> _executionUpdateStatus =
+      ApiResponse.none();
 
-ApiResponse<ExecutionUpdateResponse> get executionUpdateStatus =>
-    _executionUpdateStatus;
+  ApiResponse<ExecutionUpdateResponse> get executionUpdateStatus =>
+      _executionUpdateStatus;
 
-void _setExecutionUpdateStatus(
-    ApiResponse<ExecutionUpdateResponse> status) {
-  _executionUpdateStatus = status;
-  notifyListeners();
-}
-
-Future<void> submitExecutionElements(
-    List<Map<String, String>> elements) async {
-  _setExecutionUpdateStatus(ApiResponse.loading());
-
-  try {
-    for (var e in elements) {
-      await apiRepository.getExecutionUpdateDetails(
-        executionElementID: 0,
-        activityID: activityList.isNotEmpty
-            ? int.tryParse(activityList.first.activityID ?? '0')
-            : 0,
-        userID: dbRepository.userData?.userID,
-        executionElements: e['title'],
-        elementName: e['title'],
-        executionDescription: e['Description'],
-        executionDateFrom: "",
-        executionDateTo: "",
-        type: "Insert",
-      );
-    }
-  
-    _setExecutionUpdateStatus(ApiResponse.completed(null));
-  } catch (e) {
-    _setExecutionUpdateStatus(ApiResponse.error(e.toString()));
+  void _setExecutionUpdateStatus(ApiResponse<ExecutionUpdateResponse> status) {
+    _executionUpdateStatus = status;
+    notifyListeners();
   }
-}
 
+  Future<void> submitExecutionElements(
+    List<Map<String, String>> elements,
+  ) async {
+    _setExecutionUpdateStatus(ApiResponse.loading());
+
+    try {
+      for (var e in elements) {
+        await apiRepository.getExecutionUpdateDetails(
+          executionElementID: 0,
+          activityID: activityList.isNotEmpty
+              ? int.tryParse(activityList.first.activityID ?? '0')
+              : 0,
+          userID: dbRepository.userData?.userID,
+          executionElements: e['title'],
+          elementName: e['title'],
+          executionDescription: e['Description'],
+          executionDateFrom: "",
+          executionDateTo: "",
+          type: "Insert",
+        );
+      }
+
+      _setExecutionUpdateStatus(ApiResponse.completed(null));
+    } catch (e) {
+      _setExecutionUpdateStatus(ApiResponse.error(e.toString()));
+    }
+  }
 
   Future<bool> uploadDocument({
     required int activityId,
@@ -393,7 +394,6 @@ Future<void> submitExecutionElements(
     }
   }
 
-
   List<ViewAuthorisationDocumentsDetailsList> authDocsList = [];
   bool isLoadingAuthDocs = false;
 
@@ -403,8 +403,7 @@ Future<void> submitExecutionElements(
     notifyListeners();
 
     try {
-      final response =
-          await apiRepository.getAuthorisationViewDetails(
+      final response = await apiRepository.getAuthorisationViewDetails(
         documentID: 0,
         activityID: 40,
         userID: "5",
@@ -412,8 +411,7 @@ Future<void> submitExecutionElements(
       );
 
       if (response != null && response.result == 1) {
-        authDocsList =
-            response.viewAuthorisationDocumentsDetailsList ?? [];
+        authDocsList = response.viewAuthorisationDocumentsDetailsList ?? [];
       } else {
         authDocsList = [];
         debugPrint("API Error: ${response?.remarks}");
@@ -426,62 +424,108 @@ Future<void> submitExecutionElements(
     notifyListeners();
   }
 
-
   // ================= SUPPORTING DOCS =================
 
-List<ViewSupportingDocumentsDetailsList> supportingDocsList = [];
-bool isLoadingSupportingDocs = false;
+  List<ViewSupportingDocumentsDetailsList> supportingDocsList = [];
+  bool isLoadingSupportingDocs = false;
 
-/// FETCH SUPPORTING DOCS
-Future<void> fetchSupportingDocs() async {
-  isLoadingSupportingDocs = true;
-  notifyListeners();
+  /// FETCH SUPPORTING DOCS
+  Future<void> fetchSupportingDocs() async {
+    isLoadingSupportingDocs = true;
+    notifyListeners();
 
-  try {
-    final response = await apiRepository.getSupportingViewDetails(
-      supportID: 0,
-      activityID: 40,
-      userID: "5",
-      type: "VIEW",
-    );
+    try {
+      final response = await apiRepository.getSupportingViewDetails(
+        supportID: 0,
+        activityID: 40,
+        userID: "5",
+        type: "VIEW",
+      );
 
-    if (response != null && response.result == 1) {
-      supportingDocsList =
-          response.viewSupportingDocumentsDetailsList ?? [];
-    } else {
-      supportingDocsList = [];
-      debugPrint("Supporting API Error: ${response?.remarks}");
+      if (response != null && response.result == 1) {
+        supportingDocsList = response.viewSupportingDocumentsDetailsList ?? [];
+      } else {
+        supportingDocsList = [];
+        debugPrint("Supporting API Error: ${response?.remarks}");
+      }
+    } catch (e) {
+      debugPrint("Supporting Fetch Error: $e");
     }
-  } catch (e) {
-    debugPrint("Supporting Fetch Error: $e");
+
+    isLoadingSupportingDocs = false;
+    notifyListeners();
   }
 
-  isLoadingSupportingDocs = false;
-  notifyListeners();
-}
+  /// UPLOAD SUPPORTING DOC
+  Future<bool> uploadSupportingDocument({
+    required int activityId,
+    required String userId,
+    required String description,
+    required String fileBytes,
+    required String fileExt,
+  }) async {
+    try {
+      final response = await apiRepository.getSupportingUpdateDetails(
+        supportID: 0,
+        activityID: activityId,
+        userID: userId,
+        supDescription: description,
+        fileInputSup: fileBytes,
+        fileInputSupExt: fileExt,
+      );
 
-/// UPLOAD SUPPORTING DOC
-Future<bool> uploadSupportingDocument({
-  required int activityId,
-  required String userId,
-  required String description,
-  required String fileBytes,
-  required String fileExt,
-}) async {
-  try {
-    final response = await apiRepository.getSupportingUpdateDetails(
-      supportID: 0,
-      activityID: activityId,
-      userID: userId,
-      supDescription: description,
-      fileInputSup: fileBytes,
-      fileInputSupExt: fileExt,
-    );
-
-    return response?.result == 1;
-  } catch (e) {
-    debugPrint("Supporting Upload Error: $e");
-    return false;
+      return response?.result == 1;
+    } catch (e) {
+      debugPrint("Supporting Upload Error: $e");
+      return false;
+    }
   }
-}
+
+  // ================= DASHBOARD ==================
+  ApiResponse<ActivationDashBoardMasterResponse> _dashboardStatus =
+      ApiResponse.none();
+
+  ApiResponse<ActivationDashBoardMasterResponse> get dashboardStatus =>
+      _dashboardStatus;
+
+  void _setDashboardStatus(
+    ApiResponse<ActivationDashBoardMasterResponse> status,
+  ) {
+    _dashboardStatus = status;
+    notifyListeners();
+  }
+
+  List<DashBoardActivationDetailsList> _dashboardList = [];
+  List<DashBoardActivationDetailsList> get dashboardList => _dashboardList;
+
+  Future<void> fetchDashboardDetails({
+    required String? type,
+    required int? activityID,
+    required String? userID,
+  }) async {
+    _setDashboardStatus(ApiResponse.loading());
+
+    try {
+      final response = await apiRepository.getDashboardViewDetails(
+        type: type,
+        activityID: activityID,
+        userID: userID,
+      );
+
+      if (response == null) {
+        _setDashboardStatus(ApiResponse.error("Null response"));
+        return;
+      }
+
+      if (AppUtils.checkAPIStatusId(response.result)) {
+        _dashboardList = response.dashBoardActivationDetailsList ?? [];
+
+        _setDashboardStatus(ApiResponse.completed(response));
+      } else {
+        _setDashboardStatus(ApiResponse.error(response.remarks ?? "Error"));
+      }
+    } catch (e) {
+      _setDashboardStatus(ApiResponse.error(e.toString()));
+    }
+  }
 }

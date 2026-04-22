@@ -12,4 +12,5 @@ class ApiEndPoints {
   static const String supportingupdateDetails =
       "AddUpdateSupportingDocuments";
   static const String supportingviewDetails = "ViewSupportingDocuments";
+  static const String activationDashBoardMaster = "ActivationDashBoardMaster";
 }

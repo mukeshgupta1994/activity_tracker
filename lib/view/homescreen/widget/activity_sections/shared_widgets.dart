@@ -19,7 +19,7 @@ class DocumentData {
   String label;
   bool isUploaded;
   bool isEditable;
-  String? base64File; // ✅ ADD THIS
+  String? base64File; 
 
   DocumentData({
     required this.label,

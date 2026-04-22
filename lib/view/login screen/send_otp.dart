@@ -181,48 +181,169 @@ class _SendOtpScreenState extends State<SendOtpScreen>
     );
   }
 
+  // Widget _buildDesktop() {
+  //   return Center(
+  //     child: Row(
+  //       children: [
+  //         Expanded(
+  //           child: Image.asset('assets/images/desktop_bg.png'),
+  //         ), // Side image
+  //         Container(
+  //           width: 500,
+  //           padding: const EdgeInsets.all(40),
+  //           decoration: BoxDecoration(
+  //             color: Colors.white,
+  //             boxShadow: [BoxShadow(blurRadius: 10)],
+  //           ),
+  //           child: Consumer<LoginViewModel>(
+  //             builder: (_, lvm, __) => Column(
+  //               children: [
+  //                 Image.asset('assets/images/log_icon.png', height: 160),
+  //                 _buildHeaderText('Welcome', 'Enter your mobile number'),
+  //                 const SizedBox(height: 40),
+  //                 CustomTextField(
+  //                   controller: lvm.sentOtpTextController,
+  //                   hint: 'Mobile Number',
+  //                   icon: Icons.phone_android_rounded,
+  //                   keyboardType: TextInputType.phone,
+  //                 ),
+  //                 const SizedBox(height: 30),
+  //                 CustomButton(
+  //                   text: 'Send OTP',
+  //                   onPressed: lvm.sentOtpStatus.status == ApiResponse.loading
+  //                       ? null
+  //                       : _handleSendOtp,
+  //                   isLoading: lvm.sentOtpStatus.status == ApiResponse.loading,
+  //                 ),
+  //               ],
+  //             ),
+  //           ),
+  //         ),
+  //       ],
+  //     ),
+  //   );
+  // }
   Widget _buildDesktop() {
-    return Center(
-      child: Row(
-        children: [
-          Expanded(
-            child: Image.asset('assets/images/desktop_bg.png'),
-          ), // Side image
-          Container(
-            width: 500,
-            padding: const EdgeInsets.all(40),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              boxShadow: [BoxShadow(blurRadius: 10)],
+  return Container(
+    color: Colors.white,
+    child: Row(
+      children: [
+        // 🔥 LEFT SIDE (Gradient Branding)
+        Expanded(
+          flex: 5,
+          child: Container(
+            height: double.infinity,
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                colors: [Color(0xFF3D3BF3), Color(0xFF6A6AFB)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
             ),
-            child: Consumer<LoginViewModel>(
-              builder: (_, lvm, __) => Column(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 60),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Image.asset('assets/images/log_icon.png', height: 160),
-                  _buildHeaderText('Welcome', 'Enter your mobile number'),
-                  const SizedBox(height: 40),
-                  CustomTextField(
-                    controller: lvm.sentOtpTextController,
-                    hint: 'Mobile Number',
-                    icon: Icons.phone_android_rounded,
-                    keyboardType: TextInputType.phone,
+                  Image.asset(
+                    'assets/images/log_icon.png',
+                    height: 180,
                   ),
-                  const SizedBox(height: 30),
-                  CustomButton(
-                    text: 'Send OTP',
-                    onPressed: lvm.sentOtpStatus.status == ApiResponse.loading
-                        ? null
-                        : _handleSendOtp,
-                    isLoading: lvm.sentOtpStatus.status == ApiResponse.loading,
+                  const SizedBox(height: 40),
+
+                  const Text(
+                    "Welcome to\nActivity Tracker",
+                    style: TextStyle(
+                      fontSize: 36,
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                      height: 1.2,
+                    ),
+                  ),
+
+                  const SizedBox(height: 20),
+
+                  const Text(
+                    "Track your activities, manage tasks,\nand boost productivity 🚀",
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: Colors.white70,
+                      height: 1.5,
+                    ),
                   ),
                 ],
               ),
             ),
           ),
-        ],
-      ),
-    );
-  }
+        ),
+
+        // 💼 RIGHT SIDE (LOGIN FORM)
+        Expanded(
+          flex: 4,
+          child: Center(
+            child: SingleChildScrollView(
+              child: Container(
+                width: 420,
+                padding: const EdgeInsets.all(40),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(20),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.06),
+                      blurRadius: 25,
+                      offset: const Offset(0, 10),
+                    ),
+                  ],
+                ),
+                child: Consumer<LoginViewModel>(
+                  builder: (_, lvm, __) => Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Image.asset(
+                        'assets/images/log_icon.png',
+                        height: 120,
+                      ),
+
+                      const SizedBox(height: 20),
+
+                      _buildHeaderText(
+                        'Welcome',
+                        'Enter your mobile number to continue',
+                      ),
+
+                      const SizedBox(height: 40),
+
+                      CustomTextField(
+                        controller: lvm.sentOtpTextController,
+                        hint: 'Mobile Number',
+                        icon: Icons.phone_android_rounded,
+                        keyboardType: TextInputType.phone,
+                      ),
+
+                      const SizedBox(height: 30),
+
+                      CustomButton(
+                        text: 'Send OTP',
+                        onPressed:
+                            lvm.sentOtpStatus.status == ApiResponse.loading
+                                ? null
+                                : _handleSendOtp,
+                        isLoading:
+                            lvm.sentOtpStatus.status == ApiResponse.loading,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ],
+    ),
+  );
+}
 
   void _handleSendOtp() async {
     if ((SendOtpScreen._formKey.currentState?.validate() ?? false) &&

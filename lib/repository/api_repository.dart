@@ -1,5 +1,6 @@
 import 'package:activity_tracker/data/api_end_points.dart';
 import 'package:activity_tracker/data/remote/network/base_api_service.dart';
+import 'package:activity_tracker/models/response_models/activity_dashboard/Activation_DashBoard_Response.dart';
 import 'package:activity_tracker/models/response_models/activity_details/activity_dropdown_response.dart';
 import 'package:activity_tracker/models/response_models/activity_details/activity_dropdownupdate_response.dart';
 import 'package:activity_tracker/models/response_models/agency_details/agency_update_response.dart';
@@ -309,6 +310,23 @@ class ApiRepository {
         },
       );
       return ViewSupportingDocumentsResponse.fromJson(response);
+    } catch (e) {
+      debugPrint("Exception: $e");
+      rethrow;
+    }
+  }
+
+  Future<ActivationDashBoardMasterResponse?> getDashboardViewDetails({
+    required String? type,
+    required int? activityID,
+    required String? userID,
+  }) async {
+    try {
+      final response = await apiService.post(
+        ApiEndPoints.activationDashBoardMaster,
+        data: {"Type": type, "ActivityID": activityID, "UserID": userID},
+      );
+      return ActivationDashBoardMasterResponse.fromJson(response);
     } catch (e) {
       debugPrint("Exception: $e");
       rethrow;

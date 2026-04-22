@@ -156,3 +156,13 @@ curl --location 'http://uat.jfsl.in/ACTIVATIONTRACKERAPI/api/API/ViewSupportingD
   "UserID": "5",
   "Type": "VIEW"
 }'
+
+
+###
+curl --location 'http://uat.jfsl.in/ACTIVATIONTRACKERAPI/api/API/ActivationDashBoardMaster' \
+--header 'Content-Type: application/json' \
+--data '{
+  "Type": "VIEW",
+  "ActivityID": 101,
+  "UserID": "2"
+}'

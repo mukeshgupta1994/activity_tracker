@@ -36,14 +36,6 @@ class PushNotificationService {
     }
   }
 
-  static Future<void> registerNotificationListeners() async {
-    if (kDebugMode) {
-      debugPrint(
-        'PushNotificationService.registerNotificationListeners: No-op on web',
-      );
-    }
-  }
-
   static Future<void> setupForegroundNotification() async {
     if (kDebugMode) {
       debugPrint(
