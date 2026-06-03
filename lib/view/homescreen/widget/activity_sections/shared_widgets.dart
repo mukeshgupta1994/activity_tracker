@@ -19,7 +19,7 @@ class DocumentData {
   String label;
   bool isUploaded;
   bool isEditable;
-  String? base64File; 
+  String? base64File;
 
   DocumentData({
     required this.label,
@@ -29,6 +29,55 @@ class DocumentData {
   });
 }
 // Shared UI components (public)
+// class DropdownField extends StatelessWidget {
+//   final String label;
+//   final String value;
+//   final IconData icon;
+//   final VoidCallback? onTap;
+
+//   const DropdownField({
+//     required this.label,
+//     required this.value,
+//     required this.icon,
+//     this.onTap,
+//     Key? key,
+//   }) : super(key: key);
+
+//   @override
+//   Widget build(BuildContext context) {
+//     return Column(
+//       crossAxisAlignment: CrossAxisAlignment.start,
+//       children: [
+//         Text(label, style: Theme.of(context).textTheme.labelLarge),
+//         const SizedBox(height: 8),
+//         GestureDetector(
+//           onTap: onTap,
+//           child: Container(
+
+//             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+//             decoration: BoxDecoration(
+//               border: Border.all(color: Colors.grey.shade300),
+//               borderRadius: BorderRadius.circular(12),
+
+//             ),
+//             child: Row(
+//               children: [
+//                 Icon(
+//                   icon,
+//                   color: Theme.of(context).colorScheme.primary,
+//                   size: 20,
+//                 ),
+//                 const SizedBox(width: 12),
+//                 Expanded(child: Text(value)),
+//                 const Icon(Icons.arrow_drop_down, color: Colors.grey),
+//               ],
+//             ),
+//           ),
+//         ),
+//       ],
+//     );
+//   }
+// }
 class DropdownField extends StatelessWidget {
   final String label;
   final String value;
@@ -45,29 +94,55 @@ class DropdownField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
+    final isPlaceholder = value.toLowerCase().contains('select');
+
+  return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: Theme.of(context).textTheme.labelLarge),
-        const SizedBox(height: 8),
+        Text(
+          label,
+          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+            fontSize: 12,
+            fontWeight: FontWeight.w600,
+            color: Theme.of(context).hintColor,
+          ),
+        ),
+        const SizedBox(height: 6),
+
         GestureDetector(
           onTap: onTap,
           child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
             decoration: BoxDecoration(
-              border: Border.all(color: Colors.grey.shade300),
+              color: Theme.of(context).cardColor,
+              border: Border.all(
+                  color: Theme.of(context).dividerColor.withOpacity(0.6)),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Row(
               children: [
                 Icon(
                   icon,
+                  size: 16,
                   color: Theme.of(context).colorScheme.primary,
-                  size: 20,
                 ),
-                const SizedBox(width: 12),
-                Expanded(child: Text(value)),
-                const Icon(Icons.arrow_drop_down, color: Colors.grey),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    value,
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      fontSize: 13,
+                      color: isPlaceholder ? Theme.of(context).hintColor : null,
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                const SizedBox(width: 6),
+                Icon(
+                  Icons.arrow_drop_down,
+                  size: 18,
+                  color: Theme.of(context).hintColor.withOpacity(0.9),
+                ),
               ],
             ),
           ),
@@ -94,19 +169,20 @@ class DisplayField extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: Theme.of(context).textTheme.labelLarge),
-        const SizedBox(height: 8),
+        Text(label, style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Theme.of(context).hintColor, fontWeight: FontWeight.w600)),
+        const SizedBox(height: 6),
         Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
           decoration: BoxDecoration(
-            color: Colors.grey.shade50,
+            color: Theme.of(context).cardColor,
             borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: Theme.of(context).dividerColor.withOpacity(0.08)),
           ),
           child: Row(
             children: [
-              Icon(icon, color: Colors.grey.shade600, size: 20),
+              Icon(icon, color: Theme.of(context).hintColor, size: 18),
               const SizedBox(width: 12),
-              Expanded(child: Text(value)),
+              Expanded(child: Text(value, style: Theme.of(context).textTheme.bodyMedium)),
             ],
           ),
         ),
@@ -115,6 +191,94 @@ class DisplayField extends StatelessWidget {
   }
 }
 
+// class EditableDetailCard extends StatelessWidget {
+//   final String title;
+//   final Map<String, String> details;
+//   final VoidCallback? onDelete;
+
+//   const EditableDetailCard({
+//     required this.title,
+//     required this.details,
+//     this.onDelete,
+//     Key? key,
+//   }) : super(key: key);
+
+//   @override
+//   Widget build(BuildContext context) {
+//     final TextEditingController titleController = TextEditingController(
+//       text: title,
+//     );
+//     return Container(
+//       padding: const EdgeInsets.all(20),
+//       decoration: BoxDecoration(
+//         border: Border.all(color: Colors.grey.shade200),
+//         borderRadius: BorderRadius.circular(16),
+//       ),
+//       child: Column(
+//         crossAxisAlignment: CrossAxisAlignment.start,
+//         children: [
+//           Row(
+//             children: [
+//               Expanded(
+//                 child: TextField(
+//                   controller: titleController,
+//                   decoration: InputDecoration(
+//                     labelStyle: TextStyle(
+//                       color: Colors.grey.shade600,
+//                       fontSize: 12,
+//                     ),
+//                     hintText: "Title",
+//                     border: OutlineInputBorder(
+//                       borderRadius: BorderRadius.all(Radius.circular(8)),
+//                     ),
+//                     contentPadding: EdgeInsets.symmetric(
+//                       horizontal: 12,
+//                       vertical: 12,
+//                     ),
+//                   ),
+//                   style: const TextStyle(
+//                     fontWeight: FontWeight.bold,
+//                     fontSize: 16,
+//                   ),
+//                 ),
+//               ),
+//               const SizedBox(width: 12),
+//               if (onDelete != null)
+//                 IconButton(
+//                   onPressed: onDelete,
+//                   icon: const Icon(Icons.delete_outline, color: Colors.red),
+//                 ),
+//             ],
+//           ),
+//           const SizedBox(height: 16),
+//           ...details.entries.map((entry) {
+//             final controller = TextEditingController(text: entry.value);
+//             return Padding(
+//               padding: const EdgeInsets.only(bottom: 12),
+//               child: TextField(
+//                 controller: controller,
+//                 decoration: InputDecoration(
+//                   labelStyle: TextStyle(
+//                     color: Colors.grey.shade600,
+//                     fontSize: 12,
+//                   ),
+//                   labelText: entry.key,
+//                   border: const OutlineInputBorder(
+//                     borderRadius: BorderRadius.all(Radius.circular(8)),
+//                   ),
+//                   contentPadding: const EdgeInsets.symmetric(
+//                     horizontal: 16,
+//                     vertical: 12,
+//                   ),
+//                 ),
+//               ),
+//             );
+//           }).toList(),
+//         ],
+//       ),
+//     );
+//   }
+// }
 class EditableDetailCard extends StatelessWidget {
   final String title;
   final Map<String, String> details;
@@ -127,69 +291,94 @@ class EditableDetailCard extends StatelessWidget {
     Key? key,
   }) : super(key: key);
 
+  // 🔹 Common Decoration
+  InputDecoration _decoration(BuildContext context, String label) {
+    return InputDecoration(
+      labelText: label,
+      isDense: true,
+      contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+      labelStyle: TextStyle(color: Theme.of(context).hintColor, fontSize: 12),
+      floatingLabelStyle: TextStyle(color: Theme.of(context).hintColor, fontSize: 12),
+
+      hintStyle: TextStyle(color: Theme.of(context).hintColor.withOpacity(0.6), fontSize: 12),
+
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(8),
+        borderSide: BorderSide(color: Theme.of(context).dividerColor.withOpacity(0.08)),
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(8),
+        borderSide: BorderSide(color: Theme.of(context).dividerColor.withOpacity(0.08)),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(8),
+        borderSide: BorderSide(color: Theme.of(context).colorScheme.primary.withOpacity(0.9)),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    final TextEditingController titleController = TextEditingController(
-      text: title,
-    );
+    final titleController = TextEditingController(text: title);
+
     return Container(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        border: Border.all(color: Colors.grey.shade200),
-        borderRadius: BorderRadius.circular(16),
+        color: Theme.of(context).cardColor,
+        border: Border.all(color: Theme.of(context).dividerColor.withOpacity(0.06)),
+        borderRadius: BorderRadius.circular(10),
+        boxShadow: [
+          BoxShadow(color: Theme.of(context).shadowColor.withOpacity(0.03), blurRadius: 8),
+        ],
       ),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
               Expanded(
-                child: TextField(
-                  controller: titleController,
-                  decoration: const InputDecoration(
-                    hintText: "Title",
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.all(Radius.circular(8)),
+                child: SizedBox(
+                  height: 44,
+                  child: TextField(
+                    controller: titleController,
+                    style: const TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
                     ),
-                    contentPadding: EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 12,
-                    ),
-                  ),
-                  style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 16,
+                    decoration: _decoration(context, "Title"),
                   ),
                 ),
               ),
-              const SizedBox(width: 12),
+              const SizedBox(width: 8),
+
               if (onDelete != null)
                 IconButton(
                   onPressed: onDelete,
-                  icon: const Icon(Icons.delete_outline, color: Colors.red),
+                  icon: const Icon(Icons.close, size: 18, color: Colors.grey),
                 ),
             ],
           ),
-          const SizedBox(height: 16),
-          ...details.entries.map((entry) {
-            final controller = TextEditingController(text: entry.value);
-            return Padding(
-              padding: const EdgeInsets.only(bottom: 12),
-              child: TextField(
-                controller: controller,
-                decoration: InputDecoration(
-                  labelText: entry.key,
-                  border: const OutlineInputBorder(
-                    borderRadius: BorderRadius.all(Radius.circular(8)),
-                  ),
-                  contentPadding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 12,
+
+          const SizedBox(height: 8),
+
+          Row(
+            children: details.entries.map((entry) {
+              final controller = TextEditingController(text: entry.value);
+
+              return Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.only(right: 8),
+                      child: SizedBox(
+                    height: 44,
+                    child: TextField(
+                      controller: controller,
+                      style: const TextStyle(fontSize: 12),
+                      decoration: _decoration(context, entry.key),
+                    ),
                   ),
                 ),
-              ),
-            );
-          }).toList(),
+              );
+            }).toList(),
+          ),
         ],
       ),
     );
@@ -200,18 +389,17 @@ class FileCard extends StatelessWidget {
   final String label;
   final bool isUploaded;
   final VoidCallback? onUpload;
- 
+
   const FileCard({
     required this.label,
     required this.isUploaded,
     this.onUpload,
     Key? key,
   }) : super(key: key);
- 
+
   @override
   Widget build(BuildContext context) {
-    return 
-    Container(
+    return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       decoration: BoxDecoration(
         color: Colors.grey.shade100,
@@ -226,7 +414,7 @@ class FileCard extends StatelessWidget {
             size: 24,
           ),
           const SizedBox(width: 14),
- 
+
           // Label
           Expanded(
             child: Text(
@@ -238,19 +426,19 @@ class FileCard extends StatelessWidget {
               ),
             ),
           ),
- 
+
           // Green checkmark (only when uploaded)
           if (isUploaded) ...[
             const Icon(Icons.check_circle, color: Colors.green, size: 22),
             const SizedBox(width: 10),
           ],
- 
+
           // Upload / re-upload icon button
           GestureDetector(
             onTap: onUpload,
             child: Icon(
-              Icons.upload,                        // ← upload icon as requested
-              color: const Color(0xFF2D3A8C),      // dark navy, matches screenshot
+              Icons.upload, // ← upload icon as requested
+              color: const Color(0xFF2D3A8C), // dark navy, matches screenshot
               size: 22,
             ),
           ),
@@ -303,6 +491,7 @@ class ActionCard extends StatelessWidget {
     );
   }
 }
+
 class DropdownBottomSheet extends StatelessWidget {
   final String type;
   final List<Map<String, dynamic>> options; // ✅ FIXED

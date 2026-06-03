@@ -73,28 +73,7 @@ class _ExecutionElementSectionState extends State<ExecutionElementSection> {
           );
         }).toList(),
 
-        TextButton.icon(
-          onPressed: _addExecutionElement,
-          icon: Icon(
-            Icons.add_circle_outline,
-            color: Theme.of(context).colorScheme.primary,
-            size: 20,
-          ),
-          label: const Text(
-            'Add New Execution Element',
-            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
-          ),
-          style: TextButton.styleFrom(
-            padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 20),
-            backgroundColor: Theme.of(
-              context,
-            ).colorScheme.primary.withOpacity(0.05),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
-          ),
-        ),
-
+        
         SizedBox(height: 20),
         // ✅ SAVE BUTTON WITH API
         if (widget.onSaved != null)
@@ -102,6 +81,31 @@ class _ExecutionElementSectionState extends State<ExecutionElementSection> {
             padding: const EdgeInsets.only(bottom: 12),
             child: Row(
               children: [
+                Expanded(
+                  child: TextButton.icon(
+                            onPressed: _addExecutionElement,
+                            icon: Icon(
+                              Icons.add_circle_outline,
+                              color: Theme.of(context).colorScheme.primary,
+                              size: 20,
+                            ),
+                            label: const Text(
+                              'Add New Execution Element',
+                              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                            ),
+                            style: TextButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 20),
+                              backgroundColor: Theme.of(
+                                context,
+                              ).colorScheme.primary.withOpacity(0.05),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                            ),
+                          ),
+                ),
+        SizedBox(width: 20),
+
                 Expanded(
                   child: ElevatedButton(
                     onPressed: () async {
@@ -168,27 +172,27 @@ class _ExecutionElementSectionState extends State<ExecutionElementSection> {
           ),
 
         // ✅ SAME ADD BUTTON
-        TextButton.icon(
-          onPressed: _addExecutionElement,
-          icon: Icon(
-            Icons.add_circle_outline,
-            color: Theme.of(context).colorScheme.primary,
-            size: 20,
-          ),
-          label: const Text(
-            'Add New Execution Element',
-            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
-          ),
-          style: TextButton.styleFrom(
-            padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 20),
-            backgroundColor: Theme.of(
-              context,
-            ).colorScheme.primary.withOpacity(0.05),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
-          ),
-        ),
+        // TextButton.icon(
+        //   onPressed: _addExecutionElement,
+        //   icon: Icon(
+        //     Icons.add_circle_outline,
+        //     color: Theme.of(context).colorScheme.primary,
+        //     size: 20,
+        //   ),
+        //   label: const Text(
+        //     'Add New Execution Element',
+        //     style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+        //   ),
+        //   style: TextButton.styleFrom(
+        //     padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 20),
+        //     backgroundColor: Theme.of(
+        //       context,
+        //     ).colorScheme.primary.withOpacity(0.05),
+        //     shape: RoundedRectangleBorder(
+        //       borderRadius: BorderRadius.circular(12),
+        //     ),
+        //   ),
+        // ),
       ],
     );
   }

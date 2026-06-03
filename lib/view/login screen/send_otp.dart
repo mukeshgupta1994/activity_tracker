@@ -29,22 +29,79 @@ class _SendOtpScreenState extends State<SendOtpScreen>
   late Animation<double> _formFade;
   late Animation<Offset> _formSlide;
 
-  @override
-  void initState() {
-    super.initState();
-    // Exact same animation initState as your first code
-    _mainAnimController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 1200),
-    );
-    const curve = Curves.easeOutQuart;
-    _imageFade = CurvedAnimation(
+@override
+void initState() {
+  super.initState();
+
+  _mainAnimController = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 1200),
+  );
+
+  const curve = Curves.easeOutQuart;
+
+  _imageFade = CurvedAnimation(
+    parent: _mainAnimController,
+    curve: const Interval(0.0, 0.4, curve: curve),
+  );
+
+  _imageSlide = Tween<Offset>(
+    begin: const Offset(0, 0.1),
+    end: Offset.zero,
+  ).animate(
+    CurvedAnimation(
       parent: _mainAnimController,
       curve: const Interval(0.0, 0.4, curve: curve),
-    );
-    // ... baaki same
-    _mainAnimController.forward();
-  }
+    ),
+  );
+
+  _titleFade = CurvedAnimation(
+    parent: _mainAnimController,
+    curve: const Interval(0.2, 0.6, curve: curve),
+  );
+
+  _titleSlide = Tween<Offset>(
+    begin: const Offset(0, 0.2),
+    end: Offset.zero,
+  ).animate(
+    CurvedAnimation(
+      parent: _mainAnimController,
+      curve: const Interval(0.2, 0.6, curve: curve),
+    ),
+  );
+
+  _subtextFade = CurvedAnimation(
+    parent: _mainAnimController,
+    curve: const Interval(0.3, 0.7, curve: curve),
+  );
+
+  _subtextSlide = Tween<Offset>(
+    begin: const Offset(0, 0.2),
+    end: Offset.zero,
+  ).animate(
+    CurvedAnimation(
+      parent: _mainAnimController,
+      curve: const Interval(0.3, 0.7, curve: curve),
+    ),
+  );
+
+  _formFade = CurvedAnimation(
+    parent: _mainAnimController,
+    curve: const Interval(0.4, 1.0, curve: curve),
+  );
+
+  _formSlide = Tween<Offset>(
+    begin: const Offset(0, 0.2),
+    end: Offset.zero,
+  ).animate(
+    CurvedAnimation(
+      parent: _mainAnimController,
+      curve: const Interval(0.4, 1.0, curve: curve),
+    ),
+  );
+
+  _mainAnimController.forward();
+}
 
   @override
   void dispose() {
@@ -180,49 +237,6 @@ class _SendOtpScreenState extends State<SendOtpScreen>
       ),
     );
   }
-
-  // Widget _buildDesktop() {
-  //   return Center(
-  //     child: Row(
-  //       children: [
-  //         Expanded(
-  //           child: Image.asset('assets/images/desktop_bg.png'),
-  //         ), // Side image
-  //         Container(
-  //           width: 500,
-  //           padding: const EdgeInsets.all(40),
-  //           decoration: BoxDecoration(
-  //             color: Colors.white,
-  //             boxShadow: [BoxShadow(blurRadius: 10)],
-  //           ),
-  //           child: Consumer<LoginViewModel>(
-  //             builder: (_, lvm, __) => Column(
-  //               children: [
-  //                 Image.asset('assets/images/log_icon.png', height: 160),
-  //                 _buildHeaderText('Welcome', 'Enter your mobile number'),
-  //                 const SizedBox(height: 40),
-  //                 CustomTextField(
-  //                   controller: lvm.sentOtpTextController,
-  //                   hint: 'Mobile Number',
-  //                   icon: Icons.phone_android_rounded,
-  //                   keyboardType: TextInputType.phone,
-  //                 ),
-  //                 const SizedBox(height: 30),
-  //                 CustomButton(
-  //                   text: 'Send OTP',
-  //                   onPressed: lvm.sentOtpStatus.status == ApiResponse.loading
-  //                       ? null
-  //                       : _handleSendOtp,
-  //                   isLoading: lvm.sentOtpStatus.status == ApiResponse.loading,
-  //                 ),
-  //               ],
-  //             ),
-  //           ),
-  //         ),
-  //       ],
-  //     ),
-  //   );
-  // }
   Widget _buildDesktop() {
   return Container(
     color: Colors.white,

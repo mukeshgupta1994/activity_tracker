@@ -1,6 +1,6 @@
 abstract class BaseApiService {
   //UAT
-  final baseUrl = "http://uat.jfsl.in/ACTIVATIONTRACKERAPI/api/API/";
+  final baseUrl = "https://uat.jfsl.in/ACTIVATIONTRACKERAPI/api/API/";
 
   // final String baseUrl = "https://webapps.jyothy.com/Jconnectplus/api/API/";
 
