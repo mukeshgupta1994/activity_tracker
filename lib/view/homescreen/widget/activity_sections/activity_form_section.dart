@@ -76,6 +76,91 @@ class ActivityFormSection extends StatelessWidget {
     );
   }
 
+  void _showMultiSelectDropdown(BuildContext fieldCtx, String type) {
+    List<dynamic> options = [];
+    List<int> selectedIds = [];
+
+    if (vm.dropDownStatus.status == Status.completed) {
+      switch (type) {
+        case 'Vendor':
+          options = vm.agencyList;
+          selectedIds = vm.selectedAgencies
+              .map((e) => e.agencyID ?? 0)
+              .toList();
+          break;
+        case 'Medium':
+          options = vm.mediumList;
+          selectedIds = vm.selectedMediums.map((e) => e.mediumID ?? 0).toList();
+          break;
+      }
+    }
+
+    final RenderBox renderBox = fieldCtx.findRenderObject() as RenderBox;
+    final size = renderBox.size;
+    final overlay = Overlay.of(fieldCtx).context.findRenderObject() as RenderBox;
+    final offset = renderBox.localToGlobal(Offset.zero, ancestor: overlay);
+
+    OverlayEntry? overlayEntry;
+
+    overlayEntry = OverlayEntry(
+      builder: (c) => Stack(
+        children: [
+          Positioned.fill(
+            child: GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: () => overlayEntry?.remove(),
+              child: Container(color: Colors.transparent),
+            ),
+          ),
+          Positioned(
+            left: offset.dx,
+            top: offset.dy + size.height + 4,
+            width: size.width,
+            child: Material(
+              elevation: 8,
+              borderRadius: BorderRadius.circular(12),
+              color: Theme.of(fieldCtx).cardColor,
+              child: Container(
+                constraints: const BoxConstraints(maxHeight: 250),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: Theme.of(fieldCtx).dividerColor.withOpacity(0.1),
+                  ),
+                ),
+                child: MultiSelectDropdownPopup(
+                  options: options.map((e) {
+                    return {
+                      "id": type == 'Vendor' ? e.agencyID : e.mediumID,
+                      "name": type == 'Vendor' ? e.agencyName : e.mediumName,
+                    };
+                  }).toList(),
+                  selectedIds: selectedIds,
+                  onClose: () => overlayEntry?.remove(),
+                  onSelect: (List<int> ids, List<String> names) {
+                    if (type == 'Vendor') {
+                      final selected = vm.agencyList
+                          .where((e) => ids.contains(e.agencyID))
+                          .toList();
+                      vm.setSelectedAgencies(selected);
+                    } else if (type == 'Medium') {
+                      final selected = vm.mediumList
+                          .where((e) => ids.contains(e.mediumID))
+                          .toList();
+                      vm.setSelectedMediums(selected);
+                    }
+                  },
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+
+    Overlay.of(fieldCtx).insert(overlayEntry!);
+  }
+
   /// Opens a Material DatePicker and calls [onDateSelected] with dd-MM-yyyy
   Future<void> _pickDate(
     BuildContext context, {
@@ -159,64 +244,12 @@ class ActivityFormSection extends StatelessWidget {
               : Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        Expanded(
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 15,
-                              vertical: 6,
-                            ),
-                            decoration: BoxDecoration(
-                              color: Colors.grey.shade100,
-                              borderRadius: BorderRadius.circular(20),
-                              border: Border.all(color: Colors.grey.shade300),
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                const Icon(
-                                  Icons.tag,
-                                  size: 12,
-                                  color: Colors.grey,
-                                ),
-                                const SizedBox(width: 6),
-                                Text(
-                                  "Activity ID : ${vm.activityList.isNotEmpty ? vm.activityList.first.activityID ?? 'N/A (ACTIVITY ID)' : 'N/A (ACTIVITY ID)'}",
-
-                                  style: const TextStyle(
-                                    fontSize: 11,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-
-                        const SizedBox(width: 12),
-
-                        Expanded(
-                          child: _StyledTextField(
-                            label: 'Activity Name',
-                            icon: Icons.campaign,
-                            initialValue: vm.activityList.isNotEmpty
-                                ? vm.activityList.first.campaignName ?? ''
-                                : '',
-                            onChanged: vm.setCampaignName,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 10),
-
-                    // ── Row 1: Brand + Product + Status ────────────────────
-                    Row(
+                    // ── Row 1: Brand + Sub Brand + Campaign Name + Vendor ──
+                    ResponsiveRow(
                       children: [
                         Expanded(
                           child: _DropdownSelectField<dynamic>(
-                            label: 'Brand Type',
+                            label: 'Brand Name',
                             icon: Icons.branding_watermark,
                             value: vm.selectedBrand,
                             hintText: 'Select Brand',
@@ -231,22 +264,103 @@ class ActivityFormSection extends StatelessWidget {
                         const SizedBox(width: 10),
                         Expanded(
                           child: _DropdownSelectField<dynamic>(
-                            label: 'Product Type',
+                            label: 'Sub Brand Name',
                             icon: Icons.category,
-                            value: vm.selectedProduct,
-                            hintText: 'Select Product',
-                            items: vm.productList,
-                            getItemId: (p) => p.productID as int?,
-                            getItemLabel: (p) => p.productName as String? ?? '',
-                            onChanged: (val) {
-                              if (val != null) vm.setSelectedProduct(val);
-                            },
+                            value: null, // Placeholder for future Sub Brand API
+                            hintText: 'Select Sub Brand',
+                            items: [],
+                            getItemId: (p) => null,
+                            getItemLabel: (p) => '',
+                            onChanged: (val) {},
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: _StyledTextField(
+                            label: 'Campaign Name',
+                            icon: Icons.campaign,
+                            initialValue: vm.activityList.isNotEmpty
+                                ? vm.activityList.first.campaignName ?? ''
+                                : '',
+                            onChanged: vm.setCampaignName,
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                "Activity ID",
+                                style: Theme.of(context).textTheme.bodySmall
+                                    ?.copyWith(
+                                      color: Theme.of(context).hintColor,
+                                      fontWeight: FontWeight.w600,
+                                      fontSize: 10,
+                                    ),
+                              ),
+                              const SizedBox(height: 6),
+                              Container(
+                                height: 34,
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 10,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: Colors.grey.shade100,
+                                  borderRadius: BorderRadius.circular(10),
+                                  border: Border.all(
+                                    color: Colors.grey.shade300,
+                                  ),
+                                ),
+                                alignment: Alignment.centerLeft,
+                                child: Text(
+                                  vm.activityList.isNotEmpty
+                                      ? vm.activityList.first.activityID ??
+                                            'N/A'
+                                      : 'N/A',
+                                  style: const TextStyle(
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w600,
+                                    color: Colors.black54,
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+
+                    // ── Row 2: Medium + Vehicle + Activity Status + Activity ID ──
+                    ResponsiveRow(
+                      children: [
+                        Expanded(
+                          child: MultiSelectDropdownField(
+                            label: 'Medium',
+                            hint: 'Select Mediums',
+                            selectedNames: vm.selectedMediums
+                                .map((e) => e.mediumName ?? '')
+                                .toList(),
+                            onTap: (fieldCtx) =>
+                                _showMultiSelectDropdown(fieldCtx, 'Medium'),
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: _StyledTextField(
+                            label: 'Vehicle',
+                            icon: Icons.directions_car,
+                            initialValue: vm.vehicle,
+                            onChanged: vm.setVehicle,
                           ),
                         ),
                         const SizedBox(width: 10),
                         Expanded(
                           child: _DropdownSelectField<dynamic>(
-                            label: 'Status Type',
+                            label: 'Activity Status',
                             icon: Icons.info_outline,
                             value: vm.selectedStatus,
                             hintText: 'Select Status',
@@ -259,47 +373,26 @@ class ActivityFormSection extends StatelessWidget {
                             },
                           ),
                         ),
-                      ],
-                    ),
-                    const SizedBox(height: 10),
-
-                    // ── Row 2: Campaign Name (TextField) + Status ─────────
-                    Row(children: [const SizedBox(width: 10)]),
-                    const SizedBox(height: 10),
-                    Row(
-                      children: [
-                        Expanded(
-                          // ✅ Editable TextField
-                          child: _StyledTextField(
-                            label: 'P O',
-                            icon: Icons.campaign,
-                            initialValue: vm.activityList.isNotEmpty
-                                ? vm.activityList.first.campaignName ?? ''
-                                : '',
-                            onChanged: vm.setCampaignName,
-                          ),
-                        ),
                         const SizedBox(width: 10),
                         Expanded(
-                          // ✅ Editable TextField
-                          child: _StyledTextField(
-                            label: 'Estimate',
-                            icon: Icons.campaign,
-                            initialValue: vm.activityList.isNotEmpty
-                                ? vm.activityList.first.campaignName ?? ''
-                                : '',
-                            onChanged: vm.setCampaignName,
+                          child: MultiSelectDropdownField(
+                            label: 'Vendor Name',
+                            hint: 'Select Vendors',
+                            selectedNames: vm.selectedAgencies
+                                .map((e) => e.agencyName ?? '')
+                                .toList(),
+                            onTap: (fieldCtx) =>
+                                _showMultiSelectDropdown(fieldCtx, 'Vendor'),
                           ),
                         ),
                       ],
                     ),
-                    const SizedBox(height: 10),
+                    const SizedBox(height: 12),
 
-                    // ── Row 3: ActivityID (read-only) + Document Date (picker) ──
-                    Row(
+                    // ── Row 3: Document Date + Date From + Date To + Save Button ──
+                    ResponsiveRow(
                       children: [
                         Expanded(
-                          // ✅ Tappable date picker
                           child: _DatePickerField(
                             label: 'Document Date',
                             value: vm.documentDate.isNotEmpty
@@ -321,9 +414,8 @@ class ActivityFormSection extends StatelessWidget {
                         ),
                         const SizedBox(width: 10),
                         Expanded(
-                          // ✅ Tappable date picker
                           child: _DatePickerField(
-                            label: 'Period From',
+                            label: 'Date From',
                             value: vm.periodFrom.isNotEmpty
                                 ? vm.periodFrom
                                 : (vm.activityList.isNotEmpty
@@ -352,9 +444,8 @@ class ActivityFormSection extends StatelessWidget {
                         ),
                         const SizedBox(width: 10),
                         Expanded(
-                          // ✅ Tappable date picker
                           child: _DatePickerField(
-                            label: 'Period To',
+                            label: 'Date To',
                             value: vm.periodTo.isNotEmpty
                                 ? vm.periodTo
                                 : (vm.activityList.isNotEmpty
@@ -381,28 +472,17 @@ class ActivityFormSection extends StatelessWidget {
                             ),
                           ),
                         ),
-                      ],
-                    ),
-                    const SizedBox(height: 10),
-
-                    const SizedBox(height: 10),
-
-                    // ── Action Buttons ────────────────────────────────────
-                    if (showActions)
-                      Row(
-                        children: [
+                        const SizedBox(width: 10),
+                        if (showActions) ...[
                           Expanded(
                             child: SizedBox(
-                              height: 42,
+                              height: 34,
                               child: CustomButton(
                                 text: 'Save',
                                 onPressed:
                                     vm.isFormValid &&
                                         vm.updateStatus.status != Status.loading
                                     ? () async {
-                                        print(
-                                          "Submitting activity-------------${status}",
-                                        );
                                         await vm.submitActivity();
                                         if (vm.updateStatus.status ==
                                             Status.completed) {
@@ -411,37 +491,24 @@ class ActivityFormSection extends StatelessWidget {
                                           ).showSnackBar(
                                             SnackBar(
                                               content: Text(
-                                                ' Saved! Activity ID: ${vm.activityList.isNotEmpty ? vm.activityList.first.activityID ?? 'New' : 'Created'}',
+                                                'Saved! Activity ID: ${vm.activityList.isNotEmpty ? vm.activityList.first.activityID ?? 'New' : 'Created'}',
                                               ),
                                               backgroundColor: Colors.green,
                                             ),
                                           );
-                                          vm.clearFormFields(); // Reset form
+                                          vm.clearFormFields();
                                           if (onSaved != null) onSaved!();
                                         }
                                       }
                                     : null,
-                                // child: Text('Save & Start Flow'),
                               ),
                             ),
                           ),
-                          SizedBox(width: 12),
-                          Expanded(
-                            child: SizedBox(
-                              height: 42,
-                              child: CustomButton(
-                                gradientColors: [
-                                  Colors.grey.shade300,
-                                  Colors.grey.shade400,
-                                ],
-                                onPressed: () {},
-                                text: 'Skip',
-                                // child: Text('Skip to Details'),
-                              ),
-                            ),
-                          ),
+                        ] else ...[
+                          const Expanded(child: SizedBox()),
                         ],
-                      ),
+                      ],
+                    ),
                   ],
                 ),
         );
@@ -509,41 +576,45 @@ class _StyledTextFieldState extends State<_StyledTextField> {
           style: Theme.of(context).textTheme.bodySmall?.copyWith(
             color: Theme.of(context).hintColor,
             fontWeight: FontWeight.w600,
+            fontSize: 10,
           ),
         ),
-        const SizedBox(height: 6),
-        TextFormField(
-          controller: _controller,
-          onChanged: widget.onChanged,
-          style: Theme.of(context).textTheme.bodyMedium,
-          decoration: InputDecoration(
-            isDense: true,
-            prefixIcon: Icon(
-              widget.icon,
-              size: 18,
-              color: Theme.of(context).colorScheme.secondary,
-            ),
-            contentPadding: const EdgeInsets.symmetric(
-              horizontal: 10,
-              vertical: 10,
-            ),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(color: Colors.grey.shade200),
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(color: Colors.grey.shade200),
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(
-                color: Theme.of(context).dividerColor,
-                width: 1.5,
+        const SizedBox(height: 4),
+        SizedBox(
+          height: 34,
+          child: TextFormField(
+            controller: _controller,
+            onChanged: widget.onChanged,
+            style: const TextStyle(fontSize: 11, color: Colors.black87),
+            decoration: InputDecoration(
+              isDense: true,
+              prefixIcon: Icon(
+                widget.icon,
+                size: 16,
+                color: Theme.of(context).colorScheme.secondary,
               ),
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 8,
+                vertical: 0,
+              ),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10),
+                borderSide: BorderSide(color: Colors.grey.shade200),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10),
+                borderSide: BorderSide(color: Colors.grey.shade200),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10),
+                borderSide: BorderSide(
+                  color: Theme.of(context).dividerColor,
+                  width: 1.5,
+                ),
+              ),
+              filled: true,
+              fillColor: Colors.white,
             ),
-            filled: true,
-            fillColor: Theme.of(context).cardColor,
           ),
         ),
       ],
@@ -580,39 +651,44 @@ class _DatePickerField extends StatelessWidget {
           style: Theme.of(context).textTheme.bodySmall?.copyWith(
             color: Theme.of(context).hintColor,
             fontWeight: FontWeight.w600,
+            fontSize: 10,
           ),
         ),
-        const SizedBox(height: 6),
+        const SizedBox(height: 4),
         InkWell(
           onTap: onTap,
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(10),
           child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+            height: 34,
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
             decoration: BoxDecoration(
               border: Border.all(color: Colors.grey.shade200),
-              borderRadius: BorderRadius.circular(12),
-              color: Theme.of(context).cardColor,
+              borderRadius: BorderRadius.circular(10),
+              color: Colors.white,
             ),
             child: Row(
               children: [
                 Icon(
                   icon,
-                  size: 18,
+                  size: 16,
                   color: Theme.of(context).colorScheme.secondary,
                 ),
-                const SizedBox(width: 8),
+                const SizedBox(width: 6),
                 Expanded(
                   child: Text(
                     value,
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: isPlaceholder ? Theme.of(context).hintColor : null,
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: isPlaceholder
+                          ? Theme.of(context).hintColor
+                          : Colors.black87,
                     ),
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
                 Icon(
                   Icons.edit_calendar_outlined,
-                  size: 16,
+                  size: 14,
                   color: Theme.of(context).hintColor,
                 ),
               ],
@@ -660,33 +736,66 @@ class _DropdownSelectField<T> extends StatelessWidget {
           style: Theme.of(context).textTheme.bodySmall?.copyWith(
             color: Theme.of(context).hintColor,
             fontWeight: FontWeight.w600,
+            fontSize: 10,
           ),
         ),
-        const SizedBox(height: 6),
+        const SizedBox(height: 4),
         Container(
+          height: 34,
           padding: const EdgeInsets.symmetric(horizontal: 8),
           decoration: BoxDecoration(
             border: Border.all(color: Colors.grey.shade200),
-            borderRadius: BorderRadius.circular(12),
-            color: Theme.of(context).cardColor,
+            borderRadius: BorderRadius.circular(10),
+            color: Colors.white,
           ),
+          alignment: Alignment.centerLeft,
           child: DropdownButtonFormField<T>(
             value: items.contains(value) ? value : null,
+            isExpanded: true,
+            menuMaxHeight: 300,
             decoration: const InputDecoration(
               border: InputBorder.none,
+              enabledBorder: InputBorder.none,
+              focusedBorder: InputBorder.none,
+              errorBorder: InputBorder.none,
+              focusedErrorBorder: InputBorder.none,
               isDense: true,
-              contentPadding: EdgeInsets.symmetric(horizontal: 4, vertical: 12),
+              contentPadding: EdgeInsets.zero,
             ),
-            hint: Text(hintText),
+            style: const TextStyle(fontSize: 11, color: Colors.black87),
+            hint: Text(
+              hintText,
+              style: TextStyle(
+                fontSize: 11,
+                color: Theme.of(context).hintColor,
+              ),
+            ),
             icon: Icon(
-              icon,
-              size: 18,
-              color: Theme.of(context).colorScheme.secondary,
+              Icons.keyboard_arrow_down,
+              size: 16,
+              color: Theme.of(context).hintColor,
             ),
             items: items.map((e) {
               return DropdownMenuItem<T>(
                 value: e,
-                child: Text(getItemLabel(e)),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      icon,
+                      size: 14,
+                      color: Theme.of(context).colorScheme.secondary,
+                    ),
+                    const SizedBox(width: 6),
+                    Expanded(
+                      child: Text(
+                        getItemLabel(e),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
+                ),
               );
             }).toList(),
             onChanged: onChanged,

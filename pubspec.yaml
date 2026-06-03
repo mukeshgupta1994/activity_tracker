@@ -58,6 +58,7 @@ dependencies:
   flutter_bloc: ^8.1.6
   responsive_framework: ^1.5.1
   open_file: ^3.5.11
+  google_fonts: ^6.2.1
 
 dev_dependencies:
   flutter_test:

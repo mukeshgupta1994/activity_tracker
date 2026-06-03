@@ -1,6 +1,5 @@
 // ignore_for_file: use_build_context_synchronously
 
-import 'dart:convert';
 import 'dart:io';
 import 'package:activity_tracker/components/closable_dialog_widget.dart';
 import 'package:activity_tracker/components/confirmation_widget.dart';
@@ -10,16 +9,12 @@ import 'package:activity_tracker/components/custom_date_picker_widget.dart';
 import 'package:activity_tracker/components/custom_date_time_picker_widget.dart';
 import 'package:activity_tracker/components/modal_bottom_sheet_widget.dart';
 import 'package:activity_tracker/components/show_dailog_widget.dart';
-import 'package:activity_tracker/models/pick_file_model.dart';
 import 'package:activity_tracker/res/app_colors.dart';
 import 'package:activity_tracker/res/app_dimension.dart';
-import 'package:activity_tracker/utils/routes/app_routes.dart';
 import 'package:activity_tracker/utils/routes/device_utils.dart';
 import 'package:awesome_dialog/awesome_dialog.dart';
-import 'package:file_picker/file_picker.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
-import 'package:go_router/go_router.dart';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -95,8 +90,8 @@ class AppUtils {
   }
 
   static bool isContains({
-    @required String? mainValue,
-    @required String? searchValue,
+    required String? mainValue,
+    required String? searchValue,
   }) {
     final String sValue = searchValue?.toLowerCase() ?? '';
     final String mValue = mainValue?.toLowerCase() ?? '';
@@ -367,7 +362,7 @@ class AppUtils {
                     Expanded(
                       child: Text(
                         message ?? "Please Wait...",
-                        style: const TextStyle(
+                        style: TextStyle(
                           color: AppColors.colorPrimaryGradientEnd,
                           fontWeight: FontWeight.bold,
                         ),
@@ -384,7 +379,7 @@ class AppUtils {
                               ),
                               padding: const EdgeInsets.all(
                                   AppDimensions.smallMargin),
-                              child: const Icon(
+                              child: Icon(
                                 Icons.close,
                                 color: AppColors.colorPrimaryGradientEnd,
                               ),
@@ -586,16 +581,13 @@ class AppUtils {
 
   static bool checkIfToday(String? dateTimeString) {
     if (dateTimeString == null) {
-      return false; // Or handle null as per your requirements
+      return false;
     }
-
-    DateTime parsedDate;
     try {
-      parsedDate = DateTime.parse(dateTimeString);
+      DateTime.parse(dateTimeString); // validate format only
     } catch (e) {
-      return false; // Handle invalid date format
+      return false;
     }
-
     // if (checkIsToday(parsedDate)) return true;
     return false;
   }

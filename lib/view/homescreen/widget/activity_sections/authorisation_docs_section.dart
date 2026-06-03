@@ -7,6 +7,7 @@ import 'package:activity_tracker/viewmodel/activity_dash_view_model.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:activity_tracker/components/components.dart';
 
 class AuthorisationDocsSection extends StatefulWidget {
   final VoidCallback? onSaved;
@@ -216,19 +217,21 @@ class _AuthorisationDocsSectionState
             const SizedBox(height: 20),
 
             /// ACTION BUTTONS
-            Row(
+            ResponsiveRow(
               children: [
+                const Expanded(child: SizedBox()),
+                const SizedBox(width: 10),
+                const Expanded(child: SizedBox()),
+                const SizedBox(width: 10),
+                const Expanded(child: SizedBox()),
+                const SizedBox(width: 10),
                 Expanded(
-                  child: OutlinedButton(
-                    onPressed: widget.onSkip,
-                    child: const Text('Skip to Next'),
-                  ),
-                ),
-                const SizedBox(width: 14),
-                Expanded(
-                  child: ElevatedButton(
-                    onPressed: widget.onSaved,
-                    child: const Text('Save & Next'),
+                  child: SizedBox(
+                    height: 34,
+                    child: CustomButton(
+                      onPressed: widget.onSaved,
+                      text: 'Save',
+                    ),
                   ),
                 ),
               ],

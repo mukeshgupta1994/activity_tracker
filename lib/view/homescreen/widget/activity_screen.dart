@@ -1,11 +1,19 @@
 import 'package:activity_tracker/res/app_colors.dart';
 import 'package:activity_tracker/viewmodel/activity_dash_view_model.dart';
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'activity_sections/activity_form_section.dart';
 import 'activity_sections/agency_partner_section.dart';
 import 'activity_sections/execution_element_section.dart';
 import 'activity_sections/authorisation_docs_section.dart';
 import 'activity_sections/supporting_docs_section.dart';
+
+// Resolution Portal design tokens
+const _kBg = Color(0xFFF5F6FC);
+const _kPrimary = Color(0xFF3243E0);
+const _kBorder = Color(0xFFE2E8F0);
+const _kTextPrimary = Color(0xFF1A1A1A);
+const _kTextSecondary = Color(0xFF64748B);
 
 class EditActivityScreen extends StatefulWidget {
   final ActivityDashViewModel vm;
@@ -27,27 +35,27 @@ class _EditActivityScreenState extends State<EditActivityScreen>
     _SectionMeta(
       title: 'Activity Details',
       icon: Icons.edit_note_outlined,
-      accent: Color(0xFF6C63FF),
+      accent: Color(0xFF3243E0), // RP royalBlue
     ),
     _SectionMeta(
       title: 'Agency Partner Details',
       icon: Icons.handshake_outlined,
-      accent: Color(0xFF00B894),
+      accent: Color(0xFF0EA5E9),
     ),
     _SectionMeta(
       title: 'Execution Element Details',
       icon: Icons.settings_input_component_outlined,
-      accent: Color(0xFF0984E3),
+      accent: Color(0xFF8B5CF6),
     ),
     _SectionMeta(
       title: 'Authorisation Documents',
       icon: Icons.verified_user_outlined,
-      accent: Color(0xFFE17055),
+      accent: Color(0xFFE8B84B), // RP golden
     ),
     _SectionMeta(
       title: 'Supporting Documents',
       icon: Icons.folder_open_outlined,
-      accent: Color(0xFFFDAB23),
+      accent: Color(0xFF10B981),
     ),
   ];
 
@@ -89,31 +97,46 @@ class _EditActivityScreenState extends State<EditActivityScreen>
   Widget build(BuildContext context) {
     return FadeTransition(
       opacity: _fadeAnimation,
-      child: CustomScrollView(
-        slivers: [
-          _buildAppBar(context),
-          SliverPadding(
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
-            sliver: SliverList(
-              delegate: SliverChildListDelegate([
-                _ProgressHeader(
-                  currentStep: _currentStep,
-                  totalSteps: _sections.length,
+      child: SingleChildScrollView(
+        physics: const BouncingScrollPhysics(),
+        child: Column(
+          children: [
+            // ── Page Header (Resolution Portal style) ─────────
+            _buildPageHeader(),
+
+            // ── Centered content with max-width ───────────────
+            Align(
+              alignment: Alignment.topCenter,
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 960),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 24,
+                    vertical: 24,
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      _ProgressHeader(
+                        currentStep: _currentStep,
+                        totalSteps: _sections.length,
+                      ),
+                      const SizedBox(height: 24),
+                      ..._buildSectionCards(),
+                      const SizedBox(height: 32),
+                      _SubmitButton(onPressed: widget.onBack),
+                      const SizedBox(height: 40),
+                    ],
+                  ),
                 ),
-                const SizedBox(height: 24),
-                ..._buildSectionCards(),
-                const SizedBox(height: 32),
-                _SubmitButton(
-                  onPressed: widget.onBack, // ✅ save sonra dashboard wapas
-                ),
-                const SizedBox(height: 40),
-              ]),
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
+
 
   List<Widget> _buildSectionCards() {
     final List<Widget> cards = [];
@@ -200,10 +223,10 @@ class _EditActivityScreenState extends State<EditActivityScreen>
                           children: [
                             Text(
                               meta.title,
-                              style: const TextStyle(
-                                fontSize: 15,
+                              style: GoogleFonts.poppins(
+                                fontSize: 14,
                                 fontWeight: FontWeight.w600,
-                                color: Color(0xFF1A1D2E),
+                                color: const Color(0xFF1A1D2E),
                                 letterSpacing: -0.2,
                               ),
                             ),
@@ -214,8 +237,8 @@ class _EditActivityScreenState extends State<EditActivityScreen>
                                   : expanded
                                       ? 'Fill in the details below'
                                       : 'Tap to expand',
-                              style: TextStyle(
-                                fontSize: 12,
+                              style: GoogleFonts.poppins(
+                                fontSize: 11,
                                 color: done
                                     ? const Color(0xFF00B894)
                                     : const Color(0xFF9496A1),
@@ -234,12 +257,12 @@ class _EditActivityScreenState extends State<EditActivityScreen>
                             color: const Color(0xFFE8FAF5),
                             borderRadius: BorderRadius.circular(20),
                           ),
-                          child: const Text(
+                          child: Text(
                             'Done',
-                            style: TextStyle(
-                              fontSize: 11,
+                            style: GoogleFonts.poppins(
+                              fontSize: 10,
                               fontWeight: FontWeight.w600,
-                              color: Color(0xFF00B894),
+                              color: const Color(0xFF00B894),
                             ),
                           ),
                         ),
@@ -306,90 +329,34 @@ class _EditActivityScreenState extends State<EditActivityScreen>
     }
   }
 
-  Widget _buildAppBar(BuildContext context) {
-    return SliverAppBar(
-      expandedHeight: 150,
-      floating: false,
-      pinned: true,
-      elevation: 0,
-      backgroundColor: Colors.white,
-      surfaceTintColor: Colors.transparent,
-      shadowColor: const Color(0x14000000),
-      automaticallyImplyLeading: false,
-      // ✅ Back button — widget.onBack callback use karta hai, GoRouter nahi
-      // leading: Padding(
-      //   padding: const EdgeInsets.all(8),
-      //   child: Material(
-      //     color: Colors.white.withOpacity(0.2),
-      //     borderRadius: BorderRadius.circular(10),
-      //     child: InkWell(
-      //       onTap: widget.onBack,
-      //       borderRadius: BorderRadius.circular(10),
-      //       child: const Icon(
-      //         Icons.arrow_back_ios_new_rounded,
-      //         size: 18,
-      //         color: Colors.white,
-      //       ),
-      //     ),
-      //   ),
-      // ),
-      flexibleSpace: FlexibleSpaceBar(
-        collapseMode: CollapseMode.parallax,
-        background: Container(
-          decoration: const BoxDecoration(
-            color: AppColors.colorWhite,
-            // gradient: LinearGradient(
-            //   begin: Alignment.topLeft,
-            //   end: Alignment.bottomRight,
-            //   colors: [Color(0xFF6C63FF), Color(0xFF00B894)],
-            // ),
-          ),
-          child: Stack(
+  // ── Resolution Portal style page header ─────────────────────
+  Widget _buildPageHeader() {
+    return Container(
+      width: double.infinity,
+      color: Colors.white,
+      padding: const EdgeInsets.fromLTRB(32, 28, 32, 24),
+      child: Align(
+        alignment: Alignment.topLeft,
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 960),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Positioned(
-                right: -40,
-                bottom: -40,
-                child: Opacity(
-                  opacity: 0.07,
-                  child: Container(
-                    width: 220,
-                    height: 220,
-                    decoration: const BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: Colors.white,
-                    ),
-                  ),
+              Text(
+                'Add Activity',
+                style: GoogleFonts.poppins(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w700,
+                  color: _kTextPrimary,
                 ),
               ),
-              Align(
-                alignment: Alignment.bottomLeft,
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: const [
-                      Text(
-                        'ACTIVITY EDITOR',
-                        style: TextStyle(
-                          // color: Colors.white60,
-                          fontSize: 11,
-                          fontWeight: FontWeight.w600,
-                          letterSpacing: 1.8,
-                        ),
-                      ),
-                      SizedBox(height: 4),
-                      Text(
-                        'Edit Activity',
-                        style: TextStyle(
-                          // color: Colors.white,
-                          fontSize: 26,
-                          fontWeight: FontWeight.w700,
-                          letterSpacing: -0.5,
-                        ),
-                      ),
-                    ],
-                  ),
+              const SizedBox(height: 4),
+              Text(
+                'Fill in the details below. Your activity will be saved once all sections are completed.',
+                style: GoogleFonts.poppins(
+                  fontSize: 12,
+                  color: _kTextSecondary,
+                  fontWeight: FontWeight.w400,
                 ),
               ),
             ],
@@ -457,8 +424,8 @@ class _StepIndicator extends StatelessWidget {
             ? const Icon(Icons.check_rounded, size: 16, color: Colors.white)
             : Text(
                 '${index + 1}',
-                style: TextStyle(
-                  fontSize: 13,
+                style: GoogleFonts.poppins(
+                  fontSize: 12,
                   fontWeight: FontWeight.w600,
                   color: active ? Colors.white : const Color(0xFF9496A1),
                 ),
@@ -469,7 +436,7 @@ class _StepIndicator extends StatelessWidget {
 }
 
 // ─────────────────────────────────────────────
-// PROGRESS HEADER
+// PROGRESS HEADER  (Resolution Portal style)
 // ─────────────────────────────────────────────
 class _ProgressHeader extends StatelessWidget {
   final int currentStep;
@@ -487,10 +454,10 @@ class _ProgressHeader extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFE8EAF0)),
+        border: Border.all(color: _kBorder),
         boxShadow: const [
           BoxShadow(
-            color: Color(0x06000000),
+            color: Color(0x08000000),
             blurRadius: 8,
             offset: Offset(0, 2),
           ),
@@ -502,18 +469,20 @@ class _ProgressHeader extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text(
+              Text(
                 'Form Progress',
-                style: TextStyle(
-                  fontSize: 13,
+                style: GoogleFonts.poppins(
+                  fontSize: 12,
                   fontWeight: FontWeight.w600,
-                  color: Color(0xFF1A1D2E),
+                  color: _kTextPrimary,
                 ),
               ),
               Text(
                 '$currentStep of $totalSteps completed',
-                style: const TextStyle(
-                    fontSize: 12, color: Color(0xFF9496A1)),
+                style: GoogleFonts.poppins(
+                  fontSize: 11,
+                  color: _kTextSecondary,
+                ),
               ),
             ],
           ),
@@ -524,9 +493,7 @@ class _ProgressHeader extends StatelessWidget {
               value: pct,
               minHeight: 6,
               backgroundColor: const Color(0xFFF0F1F5),
-              valueColor: const AlwaysStoppedAnimation<Color>(
-                Color(0xFF6C63FF),
-              ),
+              valueColor: const AlwaysStoppedAnimation<Color>(_kPrimary),
             ),
           ),
           const SizedBox(height: 10),
@@ -544,10 +511,10 @@ class _ProgressHeader extends StatelessWidget {
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(2),
                           color: isDone
-                              ? const Color(0xFF6C63FF)
+                              ? _kPrimary
                               : isActive
-                                  ? const Color(0xFF6C63FF).withOpacity(0.4)
-                                  : const Color(0xFFE8EAF0),
+                                  ? _kPrimary.withOpacity(0.35)
+                                  : _kBorder,
                         ),
                       ),
                     ),
@@ -564,7 +531,7 @@ class _ProgressHeader extends StatelessWidget {
 }
 
 // ─────────────────────────────────────────────
-// SUBMIT BUTTON
+// SUBMIT BUTTON  (Resolution Portal style)
 // ─────────────────────────────────────────────
 class _SubmitButton extends StatelessWidget {
   final VoidCallback onPressed;
@@ -574,16 +541,16 @@ class _SubmitButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return SizedBox(
       width: double.infinity,
-      height: 54,
+      height: 52,
       child: DecoratedBox(
         decoration: BoxDecoration(
           gradient: const LinearGradient(
-            colors: [Color(0xFF6C63FF), Color(0xFF00B894)],
+            colors: [Color(0xFF3243E0), Color(0xFF2A1FA3)],
           ),
-          borderRadius: BorderRadius.circular(14),
+          borderRadius: BorderRadius.circular(12),
           boxShadow: [
             BoxShadow(
-              color: const Color(0xFF6C63FF).withOpacity(0.3),
+              color: const Color(0xFF3243E0).withOpacity(0.28),
               blurRadius: 16,
               offset: const Offset(0, 6),
             ),
@@ -592,12 +559,11 @@ class _SubmitButton extends StatelessWidget {
         child: ElevatedButton.icon(
           onPressed: onPressed,
           icon: const Icon(Icons.cloud_done_outlined, size: 20),
-          label: const Text(
+          label: Text(
             'Update & Save Details',
-            style: TextStyle(
-              fontSize: 15,
+            style: GoogleFonts.poppins(
+              fontSize: 14,
               fontWeight: FontWeight.w600,
-              letterSpacing: 0.2,
             ),
           ),
           style: ElevatedButton.styleFrom(
@@ -605,7 +571,7 @@ class _SubmitButton extends StatelessWidget {
             backgroundColor: Colors.transparent,
             shadowColor: Colors.transparent,
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(14),
+              borderRadius: BorderRadius.circular(12),
             ),
           ),
         ),

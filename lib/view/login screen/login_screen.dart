@@ -1,48 +1,24 @@
-import 'package:activity_tracker/components/custom_button.dart';
-import 'package:activity_tracker/components/custom_textfield.dart';
-import 'package:activity_tracker/data/local/db/themedata/db_client.dart';
-import 'package:activity_tracker/data/remote/network/network_api_service.dart';
-import 'package:activity_tracker/repository/api_repository.dart';
-import 'package:activity_tracker/repository/db_repository.dart';
+import 'package:provider/provider.dart';
+import 'package:activity_tracker/viewmodel/login_view_model.dart';
+import 'package:activity_tracker/data/remote/response/status.dart';
 import 'package:activity_tracker/view/homescreen/home_screen.dart';
-import 'package:activity_tracker/view/homescreen/widget/activity_screen.dart';
-import 'package:activity_tracker/viewmodel/activity_dash_view_model.dart';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
+import 'package:google_fonts/google_fonts.dart';
+
 
 enum LoginStep { mobile, otp }
 
-class LoginResponse {
-  final int result;
-  final String remarks;
-  const LoginResponse({required this.result, required this.remarks});
+
+// ── Resolution Portal Color Tokens ──────────────────────────
+class _C {
+  static const royalBlue = Color(0xFF3243E0);
+  static const primaryDark = Color(0xFF2A1FA3);
+  static const lightLavender = Color(0xFFF5F6FC);
+  static const colorWhite = Color(0xFFFFFFFF);
+  static const textPrimary = Color(0xFF1A1A1A);
+  static const textSecondary = Color(0xFF666666);
+  static const borderGrey = Color(0xFFE0E0E0);
 }
-
-class AuthManager {
-  // Mock API calls.
-  Future<LoginResponse> sendOtp(String mobile) async {
-    // Is jagah real API call HTTP / Dio se karo.
-    await Future.delayed(const Duration(milliseconds: 1000));
-    return const LoginResponse(result: 1, remarks: "OTP sent successfully");
-  }
-
-  Future<LoginResponse> verifyOtp(String mobile, String otp) async {
-    // Is jagah real API call HTTP / Dio se karo.
-    await Future.delayed(const Duration(milliseconds: 1000));
-    if (otp == "1234") {
-      return const LoginResponse(result: 1, remarks: "Login successful");
-    } else {
-      return const LoginResponse(result: 0, remarks: "Invalid OTP");
-    }
-  }
-
-  void setAuthState(LoginResponse response) {
-    // Tum chaho to yahan SharedPreferences / SecureStorage / app state me store karo
-  }
-}
-
-// Global AuthManager instance (tum baad me GetIt/Provider/etc. se manage kar sakte ho)
-final authManager = AuthManager();
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -53,7 +29,6 @@ class LoginScreen extends StatefulWidget {
 
 class _LoginScreenState extends State<LoginScreen>
     with TickerProviderStateMixin {
-  late ActivityDashViewModel _activityDashViewModel;
   final _mobileController = TextEditingController();
   final List<TextEditingController> _otpControllers = List.generate(
     4,
@@ -68,82 +43,28 @@ class _LoginScreenState extends State<LoginScreen>
   bool _isLoading = false;
 
   late AnimationController _mainAnimController;
-
-  late Animation<double> _imageFade;
-  late Animation<Offset> _imageSlide;
-  late Animation<double> _titleFade;
-  late Animation<Offset> _titleSlide;
-  late Animation<double> _subtextFade;
-  late Animation<Offset> _subtextSlide;
-  late Animation<double> _formFade;
-  late Animation<Offset> _formSlide;
+  late Animation<double> _fadeAnim;
+  late Animation<Offset> _slideAnim;
 
   @override
   void initState() {
     super.initState();
-    final dbRepo = DbRepository(DbClient());
-    final httpClient = http.Client();
-    final apiService = NetworkApiService(dbRepo, httpClient);
-    final apiRepo = ApiRepository(apiService); // apna
 
-    _activityDashViewModel = ActivityDashViewModel(
-      apiRepository: apiRepo,
-      dbRepository: dbRepo,
-    );
     _mainAnimController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 1200),
+      duration: const Duration(milliseconds: 900),
     );
 
-    const curve = Curves.easeOutQuart;
-
-    _imageFade = CurvedAnimation(
+    _fadeAnim = CurvedAnimation(
       parent: _mainAnimController,
-      curve: const Interval(0.0, 0.4, curve: curve),
+      curve: Curves.easeOut,
     );
-    _imageSlide = Tween<Offset>(begin: const Offset(0, 0.1), end: Offset.zero)
-        .animate(
-          CurvedAnimation(
-            parent: _mainAnimController,
-            curve: const Interval(0.0, 0.4, curve: curve),
-          ),
-        );
-
-    _titleFade = CurvedAnimation(
-      parent: _mainAnimController,
-      curve: const Interval(0.2, 0.6, curve: curve),
+    _slideAnim = Tween<Offset>(
+      begin: const Offset(0, 0.06),
+      end: Offset.zero,
+    ).animate(
+      CurvedAnimation(parent: _mainAnimController, curve: Curves.easeOutQuart),
     );
-    _titleSlide = Tween<Offset>(begin: const Offset(0, 0.2), end: Offset.zero)
-        .animate(
-          CurvedAnimation(
-            parent: _mainAnimController,
-            curve: const Interval(0.2, 0.6, curve: curve),
-          ),
-        );
-
-    _subtextFade = CurvedAnimation(
-      parent: _mainAnimController,
-      curve: const Interval(0.3, 0.7, curve: curve),
-    );
-    _subtextSlide = Tween<Offset>(begin: const Offset(0, 0.2), end: Offset.zero)
-        .animate(
-          CurvedAnimation(
-            parent: _mainAnimController,
-            curve: const Interval(0.3, 0.7, curve: curve),
-          ),
-        );
-
-    _formFade = CurvedAnimation(
-      parent: _mainAnimController,
-      curve: const Interval(0.4, 1.0, curve: curve),
-    );
-    _formSlide = Tween<Offset>(begin: const Offset(0, 0.2), end: Offset.zero)
-        .animate(
-          CurvedAnimation(
-            parent: _mainAnimController,
-            curve: const Interval(0.4, 1.0, curve: curve),
-          ),
-        );
 
     _mainAnimController.forward();
   }
@@ -152,506 +73,545 @@ class _LoginScreenState extends State<LoginScreen>
   void dispose() {
     _mainAnimController.dispose();
     _mobileController.dispose();
-    for (var controller in _otpControllers) {
-      controller.dispose();
+    for (var c in _otpControllers) {
+      c.dispose();
     }
-    for (var node in _otpFocusNodes) {
-      node.dispose();
+    for (var n in _otpFocusNodes) {
+      n.dispose();
     }
     super.dispose();
   }
 
   void _handleSendOtp() async {
     if (_mobileController.text.length < 10) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(_buildSnackBar('Please enter a valid mobile number'));
+      _showSnack('Please enter a valid 10-digit mobile number');
       return;
     }
-
     setState(() => _isLoading = true);
-
-    try {
-      final response = await authManager.sendOtp(_mobileController.text);
-
-      if (mounted) setState(() => _isLoading = false);
-
-      if (response.result == 1) {
-        if (mounted) {
-          setState(() {
-            _currentStep = LoginStep.otp;
-          });
-        }
-        Future.delayed(const Duration(milliseconds: 300), () {
-          if (mounted) _otpFocusNodes[0].requestFocus();
-        });
-      } else {
-        if (context.mounted) {
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(_buildSnackBar(response.remarks));
-        }
-      }
-    } catch (e) {
-      if (context.mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(_buildSnackBar(e.toString()));
-      }
+    
+    final vm = context.read<LoginViewModel>();
+    vm.sentOtpTextController.text = _mobileController.text;
+    await vm.fetchSendOtp();
+    
+    if (mounted) setState(() => _isLoading = false);
+    
+    if (vm.sentOtpStatus.status == Status.completed) {
+      if (mounted) setState(() => _currentStep = LoginStep.otp);
+      Future.delayed(
+        const Duration(milliseconds: 300),
+        () => mounted ? _otpFocusNodes[0].requestFocus() : null,
+      );
+    } else if (vm.sentOtpStatus.status == Status.error) {
+      if (mounted) _showSnack(vm.sentOtpStatus.message ?? 'Error sending OTP');
     }
   }
 
   void _handleVerifyOtp() async {
-    // late ActivityDashViewModel _activityViewModel;
-
     String otp = _otpControllers.map((c) => c.text).join();
     if (otp.length < 4) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(_buildSnackBar('Please enter the 4-digit OTP'));
+      _showSnack('Please enter the 4-digit OTP');
       return;
     }
-
     setState(() => _isLoading = true);
-
-    try {
-      final response = await authManager.verifyOtp(_mobileController.text, otp);
-
-      if (mounted) setState(() => _isLoading = false);
-
-      if (response.result == 1) {
-        authManager.setAuthState(response);
-        if (context.mounted) {
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(
-              builder: (context) =>
-              ActivityTrackerDashboard()
-                 // EditActivityScreen(vm: _activityDashViewModel),
-            ),
-          );
-        }
-      } else {
-        if (context.mounted) {
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(_buildSnackBar(response.remarks));
-        }
-      }
-    } catch (e) {
-      if (mounted) setState(() => _isLoading = false);
+    
+    final vm = context.read<LoginViewModel>();
+    vm.verifyOtpTextController.text = otp;
+    await vm.fetchVerifyOtp();
+    
+    if (mounted) setState(() => _isLoading = false);
+    
+    if (vm.verifyOtpStatus.status == Status.completed) {
       if (context.mounted) {
-        ScaffoldMessenger.of(
+        Navigator.pushReplacement(
           context,
-        ).showSnackBar(_buildSnackBar(e.toString()));
+          MaterialPageRoute(
+            builder: (context) => ActivityTrackerDashboard(),
+          ),
+        );
       }
+    } else if (vm.verifyOtpStatus.status == Status.error) {
+      if (mounted) _showSnack(vm.verifyOtpStatus.message ?? 'Invalid OTP');
     }
   }
 
-  SnackBar _buildSnackBar(String message) {
-    return SnackBar(
-      content: Text(message),
-      backgroundColor: const Color(0xFF3D3BF3),
-      behavior: SnackBarBehavior.floating,
-      margin: const EdgeInsets.all(20),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+  void _showSnack(String msg) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          msg,
+          style: GoogleFonts.poppins(fontSize: 12, color: Colors.white),
+        ),
+        backgroundColor: _C.royalBlue,
+        behavior: SnackBarBehavior.floating,
+        margin: const EdgeInsets.all(20),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      ),
     );
   }
 
   @override
-  // Widget build(BuildContext context) {
-  //   return Scaffold(
-  //     backgroundColor: Colors.white,
-  //     body: SingleChildScrollView(
-  //       child: Column(
-  //         children: [
-  //           FadeTransition(
-  //             opacity: _imageFade,
-  //             child: SlideTransition(
-  //               position: _imageSlide,
-  //               child: Container(
-  //                 width: double.infinity,
-  //                 height: MediaQuery.of(context).size.height * 0.42,
-  //                 decoration: const BoxDecoration(
-  //                   color: Color(0xFFF8F8FD),
-  //                   borderRadius: BorderRadius.only(
-  //                     bottomLeft: Radius.circular(80),
-  //                     bottomRight: Radius.circular(80),
-  //                   ),
-  //                 ),
-  //                 child: Center(
-  //                   child: Image.asset(
-  //                     'assets/images/log_icon.png',
-  //                     height: 160,
-  //                     fit: BoxFit.contain,
-  //                   ),
-  //                 ),
-  //               ),
-  //             ),
-  //           ),
-  //           Padding(
-  //             padding: const EdgeInsets.fromLTRB(30, 40, 30, 40),
-  //             child: AnimatedSwitcher(
-  //               duration: const Duration(milliseconds: 400),
-  //               transitionBuilder: (Widget child, Animation<double> animation) {
-  //                 return FadeTransition(
-  //                   opacity: animation,
-  //                   child: SlideTransition(
-  //                     position: Tween<Offset>(
-  //                       begin: const Offset(0.1, 0),
-  //                       end: Offset.zero,
-  //                     ).animate(animation),
-  //                     child: child,
-  //                   ),
-  //                 );
-  //               },
-  //               child: _currentStep == LoginStep.mobile
-  //                   ? _buildMobileInput()
-  //                   : _buildOtpInput(),
-  //             ),
-  //           ),
-  //         ],
-  //       ),
-  //     ),
-  //   );
-  // }
-  @override
-Widget build(BuildContext context) {
-  final isWeb = MediaQuery.of(context).size.width > 900;
+  Widget build(BuildContext context) {
+    final isWeb = MediaQuery.of(context).size.width > 900;
+    return Scaffold(
+      backgroundColor: _C.lightLavender,
+      body: isWeb ? _buildWebLayout() : _buildMobileLayout(),
+    );
+  }
 
-  return Scaffold(
-    backgroundColor: Colors.white,
-    body: isWeb ? _buildWebLayout() : _buildMobileLayout(),
-  );
-}
-
-// Widget _buildWebLayout() {
-//   return Container(
-//     color: Colors.white,
-//     child: Row(
-//       children: [
-//         Expanded(
-//           flex: 5,
-//           child: Container(
-//             height:
-//             //double.infinity,
-//             MediaQuery.of(  context).size.height*0.7,
-//             width:MediaQuery.of(  context).size.width*0.3,
-//             // double.infinity,
-//             padding: const EdgeInsets.all(40),
-//             decoration: BoxDecoration(
-//               color: const Color(0xFFF8F8FD), // 👈 subtle difference
-//               borderRadius: const BorderRadius.only(
-//                 topRight: Radius.circular(60),
-//                 bottomRight: Radius.circular(60),
-//               ),
-//             ),
-//             child: Center(
-//               child: Column(
-//                 mainAxisAlignment: MainAxisAlignment.center,
-//                 children: [
-//                   Image.asset(
-//                     'assets/images/log_icon.png',
-//                     height: 180,
-//                   ),
-//                   const SizedBox(height: 20),
-//                   const Text(
-//                     "Welcome Back 👋",
-//                     style: TextStyle(
-//                       fontSize: 26,
-//                       fontWeight: FontWeight.w800,
-//                       color: Color(0xFF1E1E2C),
-//                     ),
-//                   ),
-//                   const SizedBox(height: 10),
-//                   const Text(
-//                     "Login to continue your journey",
-//                     style: TextStyle(
-//                       fontSize: 14,
-//                       color: Color(0xFF7D7D8F),
-//                     ),
-//                   ),
-//                 ],
-//               ),
-//             ),
-//           ),
-//         ),
-
-//         // RIGHT SIDE (LOGIN)
-//         Expanded(
-//           flex: 4,
-//           child: Center(
-//             child: SingleChildScrollView(
-//               child: Container(
-//                 constraints: const BoxConstraints(maxWidth: 400),
-//                 padding: const EdgeInsets.all(40),
-//                 decoration: BoxDecoration(
-//                   color: Colors.white,
-//                   borderRadius: BorderRadius.circular(20),
-//                   boxShadow: [
-//                     BoxShadow(
-//                       color: Colors.black.withValues(alpha: 0.05),
-//                       blurRadius: 20,
-//                       offset: const Offset(0, 10),
-//                     )
-//                   ],
-//                 ),
-//                 child: AnimatedSwitcher(
-//                   duration: const Duration(milliseconds: 400),
-//                   child: _currentStep == LoginStep.mobile
-//                       ? _buildMobileInput()
-//                       : _buildOtpInput(),
-//                 ),
-//               ),
-//             ),
-//           ),
-//         ),
-//       ],
-//     ),
-//   );
-// }
-Widget _buildWebLayout() {
-  return Row(
-    children: [
-      // LEFT SIDE (IMAGE)
-      Expanded(
-        flex: 5,
-        child: Container(
-          height: double.infinity,
-          decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              colors: [Color(0xFF3D3BF3), Color(0xFF6A6AFB)],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
-          ),
-          child: Center(
-            child: Padding(
-              padding: const EdgeInsets.all(40),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Image.asset(
-                    'assets/images/log_icon.png',
-                    height: 200,
-                  ),
-                  const SizedBox(height: 30),
-                  const Text(
-                    "Welcome to Activity Tracker",
-                    style: TextStyle(
-                      fontSize: 28,
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
+  // ── WEB LAYOUT ─────────────────────────────────────────────
+  Widget _buildWebLayout() {
+    return Row(
+      children: [
+        // Left Panel — White with illustration
+        Expanded(
+          flex: 1,
+          child: Container(
+            color: _C.colorWhite,
+            child: Center(
+              child: Padding(
+                padding: const EdgeInsets.all(40),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    // Logo / Illustration area
+                    Container(
+                      width: 120,
+                      height: 120,
+                      decoration: BoxDecoration(
+                        color: _C.royalBlue.withOpacity(0.08),
+                        borderRadius: BorderRadius.circular(24),
+                      ),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(24),
+                        child: Image.asset(
+                          'assets/images/log_icon.png',
+                          fit: BoxFit.contain,
+                        ),
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 10),
-                  const Text(
-                    "Track. Manage. Grow.",
-                    style: TextStyle(
-                      fontSize: 16,
-                      color: Colors.white70,
+                    const SizedBox(height: 32),
+                    Text(
+                      'Activity Tracker',
+                      style: GoogleFonts.poppins(
+                        fontSize: 24,
+                        fontWeight: FontWeight.w800,
+                        color: _C.royalBlue,
+                      ),
                     ),
-                  ),
-                ],
+                    const SizedBox(height: 10),
+                    Text(
+                      'Track. Manage. Grow.',
+                      style: GoogleFonts.poppins(
+                        fontSize: 13,
+                        color: _C.textSecondary,
+                        fontWeight: FontWeight.w400,
+                      ),
+                    ),
+                    const SizedBox(height: 40),
+                    // Feature pills
+                    _featurePill(Icons.bar_chart_rounded, 'Activity Dashboard'),
+                    const SizedBox(height: 10),
+                    _featurePill(
+                        Icons.check_circle_outline_rounded, 'Track Status'),
+                    const SizedBox(height: 10),
+                    _featurePill(Icons.edit_note_rounded, 'Manage Records'),
+                  ],
+                ),
               ),
             ),
+          ),
+        ),
+
+        // Right Panel — Lavender with form
+        Expanded(
+          flex: 1,
+          child: Container(
+            color: _C.lightLavender,
+            child: Center(
+              child: SingleChildScrollView(
+                child: Padding(
+                  padding: const EdgeInsets.all(40),
+                  child: SizedBox(
+                    width: 400,
+                    child: FadeTransition(
+                      opacity: _fadeAnim,
+                      child: SlideTransition(
+                        position: _slideAnim,
+                        child: AnimatedSwitcher(
+                          duration: const Duration(milliseconds: 350),
+                          transitionBuilder: (child, anim) => FadeTransition(
+                            opacity: anim,
+                            child: SlideTransition(
+                              position: Tween<Offset>(
+                                begin: const Offset(0.05, 0),
+                                end: Offset.zero,
+                              ).animate(anim),
+                              child: child,
+                            ),
+                          ),
+                          child: _currentStep == LoginStep.mobile
+                              ? _buildLoginCard(key: const ValueKey('mobile'))
+                              : _buildOtpCard(key: const ValueKey('otp')),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  // ── MOBILE LAYOUT ──────────────────────────────────────────
+  Widget _buildMobileLayout() {
+    return SafeArea(
+      child: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 40),
+          child: Column(
+            children: [
+              // Mobile header
+              FadeTransition(
+                opacity: _fadeAnim,
+                child: Column(
+                  children: [
+                    Container(
+                      width: 88,
+                      height: 88,
+                      decoration: BoxDecoration(
+                        color: _C.royalBlue.withOpacity(0.08),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(20),
+                        child: Image.asset(
+                          'assets/images/log_icon.png',
+                          fit: BoxFit.contain,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                    Text(
+                      'Activity Tracker',
+                      style: GoogleFonts.poppins(
+                        fontSize: 20,
+                        fontWeight: FontWeight.w800,
+                        color: _C.royalBlue,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      'Sign in to your account',
+                      style: GoogleFonts.poppins(
+                        fontSize: 12,
+                        color: _C.textSecondary,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 36),
+              SlideTransition(
+                position: _slideAnim,
+                child: FadeTransition(
+                  opacity: _fadeAnim,
+                  child: AnimatedSwitcher(
+                    duration: const Duration(milliseconds: 350),
+                    transitionBuilder: (child, anim) => FadeTransition(
+                      opacity: anim,
+                      child: child,
+                    ),
+                    child: _currentStep == LoginStep.mobile
+                        ? _buildLoginCard(key: const ValueKey('m_mobile'))
+                        : _buildOtpCard(key: const ValueKey('m_otp')),
+                  ),
+                ),
+              ),
+            ],
           ),
         ),
       ),
-
-      // RIGHT SIDE (LOGIN)
-      Expanded(
-        flex: 4,
-        child: Center(
-          child: SingleChildScrollView(
-            child: Container(
-              constraints: const BoxConstraints(maxWidth: 400),
-              padding: const EdgeInsets.all(40),
-              child: AnimatedSwitcher(
-                duration: const Duration(milliseconds: 400),
-                child: _currentStep == LoginStep.mobile
-                    ? _buildMobileInput()
-                    : _buildOtpInput(),
-              ),
-            ),
-          ),
-        ),
-      ),
-    ],
-  );
-}
-
-Widget _buildMobileLayout() {
-  return SingleChildScrollView(
-    child: Column(
-      children: [
-        FadeTransition(
-          opacity: _imageFade,
-          child: SlideTransition(
-            position: _imageSlide,
-            child: Container(
-              width: double.infinity,
-              height: MediaQuery.of(context).size.height * 0.42,
-              decoration: const BoxDecoration(
-                color: Color(0xFFF8F8FD),
-                borderRadius: BorderRadius.only(
-                  bottomLeft: Radius.circular(80),
-                  bottomRight: Radius.circular(80),
-                ),
-              ),
-              child: Center(
-                child: Image.asset(
-                  'assets/images/log_icon.png',
-                  height: 160,
-                ),
-              ),
-            ),
-          ),
-        ),
-        Padding(
-          padding: const EdgeInsets.all(30),
-          child: AnimatedSwitcher(
-            duration: const Duration(milliseconds: 400),
-            child: _currentStep == LoginStep.mobile
-                ? _buildMobileInput()
-                : _buildOtpInput(),
-          ),
-        ),
-      ],
-    ),
-  );
-}
-  Widget _buildMobileInput() {
-    return Column(
-      key: const ValueKey('mobile_input'),
-      children: [
-        _buildHeaderText('Welcome', 'Enter your mobile number to continue'),
-        const SizedBox(height: 40),
-        FadeTransition(
-          opacity: _formFade,
-          child: SlideTransition(
-            position: _formSlide,
-            child: Column(
-              children: [
-                CustomTextField(
-                  controller: _mobileController,
-                  hint: 'Mobile Number',
-                  icon: Icons.phone_android_rounded,
-                  keyboardType: TextInputType.phone,
-                ),
-                const SizedBox(height: 30),
-                CustomButton(
-                  text: 'Send OTP',
-                  onPressed: _handleSendOtp,
-                  isLoading: _isLoading,
-                ),
-              ],
-            ),
-          ),
-        ),
-      ],
     );
   }
 
-  Widget _buildOtpInput() {
-    return Column(
-      key: const ValueKey('otp_input'),
-      children: [
-        _buildHeaderText(
-          'Verify OTP',
-          'Enter the 4-digit code sent to your mobile',
-        ),
-        const SizedBox(height: 40),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          children: List.generate(4, (index) => _buildOtpDigitBox(index)),
-        ),
-        const SizedBox(height: 40),
-        CustomButton(
-          text: 'Verify OTP',
-          onPressed: _handleVerifyOtp,
-          isLoading: _isLoading,
-        ),
-        const SizedBox(height: 10),
-        TextButton(
-          onPressed: () {
-            setState(() {
-              _currentStep = LoginStep.mobile;
-              for (var controller in _otpControllers) {
-                controller.clear();
-              }
-            });
-          },
-          child: const Text(
-            'Change Mobile Number',
-            style: TextStyle(
-              color: Color(0xFF7D7D8F),
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildHeaderText(String title, String subtitle) {
-    return Column(
-      children: [
-        FadeTransition(
-          opacity: _titleFade,
-          child: SlideTransition(
-            position: _titleSlide,
-            child: Text(
-              title,
-              style: const TextStyle(
-                fontSize: 32,
-                fontWeight: FontWeight.w900,
-                color: Color(0xFF1E1E2C),
-                letterSpacing: -1,
-              ),
-            ),
-          ),
-        ),
-        const SizedBox(height: 10),
-        FadeTransition(
-          opacity: _subtextFade,
-          child: SlideTransition(
-            position: _subtextSlide,
-            child: Text(
-              subtitle,
-              textAlign: TextAlign.center,
-              style: const TextStyle(
-                fontSize: 14,
-                color: Color(0xFF7D7D8F),
-                height: 1.5,
-                fontWeight: FontWeight.w400,
-              ),
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildOtpDigitBox(int index) {
+  // ── LOGIN CARD ─────────────────────────────────────────────
+  Widget _buildLoginCard({Key? key}) {
     return Container(
-      width: 65,
-      height: 75,
+      key: key,
+      padding: const EdgeInsets.all(32),
       decoration: BoxDecoration(
-        color: const Color(0xFFF8F8FD),
+        color: _C.colorWhite,
         borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 24,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Icon
+          Container(
+            width: 52,
+            height: 52,
+            decoration: BoxDecoration(
+              color: _C.royalBlue.withOpacity(0.09),
+              borderRadius: BorderRadius.circular(14),
+            ),
+            child: const Icon(
+              Icons.login_rounded,
+              color: _C.royalBlue,
+              size: 28,
+            ),
+          ),
+          const SizedBox(height: 20),
+          Text(
+            'Welcome Back',
+            style: GoogleFonts.poppins(
+              fontSize: 20,
+              fontWeight: FontWeight.w700,
+              color: _C.textPrimary,
+            ),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            'Enter your mobile number to continue',
+            style: GoogleFonts.poppins(
+              fontSize: 12,
+              color: _C.textSecondary,
+              fontWeight: FontWeight.w400,
+            ),
+          ),
+          const SizedBox(height: 28),
+
+          // Phone field
+          _buildPhoneField(),
+          const SizedBox(height: 24),
+
+          // Send OTP button
+          _buildPrimaryButton(
+            label: 'Get OTP',
+            onTap: _isLoading ? null : _handleSendOtp,
+            isLoading: _isLoading,
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ── OTP CARD ───────────────────────────────────────────────
+  Widget _buildOtpCard({Key? key}) {
+    return Container(
+      key: key,
+      padding: const EdgeInsets.all(32),
+      decoration: BoxDecoration(
+        color: _C.colorWhite,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 24,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            width: 52,
+            height: 52,
+            decoration: BoxDecoration(
+              color: _C.royalBlue.withOpacity(0.09),
+              borderRadius: BorderRadius.circular(14),
+            ),
+            child: const Icon(
+              Icons.verified_rounded,
+              color: _C.royalBlue,
+              size: 28,
+            ),
+          ),
+          const SizedBox(height: 20),
+          Text(
+            'Verify OTP',
+            style: GoogleFonts.poppins(
+              fontSize: 20,
+              fontWeight: FontWeight.w700,
+              color: _C.textPrimary,
+            ),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            'Enter the 4-digit code sent to +91 ${_mobileController.text}',
+            style: GoogleFonts.poppins(
+              fontSize: 12,
+              color: _C.textSecondary,
+              fontWeight: FontWeight.w400,
+            ),
+          ),
+          const SizedBox(height: 32),
+
+          // OTP boxes
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: List.generate(4, (i) => _buildOtpBox(i)),
+          ),
+          const SizedBox(height: 28),
+
+          // Verify button
+          _buildPrimaryButton(
+            label: 'Verify OTP',
+            onTap: _isLoading ? null : _handleVerifyOtp,
+            isLoading: _isLoading,
+          ),
+          const SizedBox(height: 16),
+
+          // Change number
+          Center(
+            child: TextButton(
+              onPressed: () {
+                setState(() {
+                  _currentStep = LoginStep.mobile;
+                  for (var c in _otpControllers) {
+                    c.clear();
+                  }
+                });
+              },
+              child: Text(
+                'Change Mobile Number',
+                style: GoogleFonts.poppins(
+                  fontSize: 12,
+                  color: _C.royalBlue,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ── Phone Field ───────────────────────────────────────────
+  Widget _buildPhoneField() {
+    return Container(
+      decoration: BoxDecoration(
+        color: _C.lightLavender,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: _C.borderGrey),
+      ),
+      child: TextField(
+        controller: _mobileController,
+        keyboardType: TextInputType.phone,
+        maxLength: 10,
+        style: GoogleFonts.poppins(
+          fontSize: 14,
+          color: _C.textPrimary,
+          fontWeight: FontWeight.w500,
+        ),
+        decoration: InputDecoration(
+          counterText: '',
+          hintText: '+91 Enter mobile number',
+          hintStyle: GoogleFonts.poppins(
+            fontSize: 13,
+            color: _C.textSecondary,
+            fontWeight: FontWeight.w400,
+          ),
+          prefixIcon: const Icon(
+            Icons.phone_outlined,
+            color: _C.royalBlue,
+            size: 20,
+          ),
+          border: InputBorder.none,
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 14,
+            vertical: 16,
+          ),
+        ),
+      ),
+    );
+  }
+
+  // ── Primary Button ────────────────────────────────────────
+  Widget _buildPrimaryButton({
+    required String label,
+    required VoidCallback? onTap,
+    bool isLoading = false,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(vertical: 15),
+        decoration: BoxDecoration(
+          gradient: const LinearGradient(
+            colors: [_C.royalBlue, _C.primaryDark],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+          borderRadius: BorderRadius.circular(10),
+          boxShadow: [
+            BoxShadow(
+              color: _C.royalBlue.withOpacity(0.3),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: isLoading
+            ? const Center(
+                child: SizedBox(
+                  width: 20,
+                  height: 20,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2.2,
+                    valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                  ),
+                ),
+              )
+            : Text(
+                label,
+                textAlign: TextAlign.center,
+                style: GoogleFonts.poppins(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.white,
+                ),
+              ),
+      ),
+    );
+  }
+
+  // ── OTP Box ───────────────────────────────────────────────
+  Widget _buildOtpBox(int index) {
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 200),
+      width: 64,
+      height: 68,
+      decoration: BoxDecoration(
+        color: _otpFocusNodes[index].hasFocus
+            ? _C.royalBlue.withOpacity(0.06)
+            : _C.lightLavender,
+        borderRadius: BorderRadius.circular(12),
         border: Border.all(
           color: _otpFocusNodes[index].hasFocus
-              ? const Color(0xFF2f3192)
-              : const Color(0xFFEDEDF5),
-          width: 2,
+              ? _C.royalBlue
+              : _C.borderGrey,
+          width: _otpFocusNodes[index].hasFocus ? 2 : 1,
         ),
         boxShadow: _otpFocusNodes[index].hasFocus
             ? [
                 BoxShadow(
-                  color: const Color(0xFF3D3BF3).withValues(alpha: 0.1),
-                  blurRadius: 10,
-                  offset: const Offset(0, 4),
+                  color: _C.royalBlue.withOpacity(0.12),
+                  blurRadius: 8,
+                  offset: const Offset(0, 3),
                 ),
               ]
             : [],
@@ -663,13 +623,13 @@ Widget _buildMobileLayout() {
           textAlign: TextAlign.center,
           keyboardType: TextInputType.number,
           maxLength: 1,
-          style: const TextStyle(
-            fontSize: 24,
+          style: GoogleFonts.poppins(
+            fontSize: 20,
             fontWeight: FontWeight.w800,
-            color: Color(0xFF1E1E2C),
+            color: _C.textPrimary,
           ),
           decoration: const InputDecoration(
-            counterText: "",
+            counterText: '',
             border: InputBorder.none,
           ),
           onChanged: (value) {
@@ -686,6 +646,33 @@ Widget _buildMobileLayout() {
             setState(() {});
           },
         ),
+      ),
+    );
+  }
+
+  // ── Feature Pill ──────────────────────────────────────────
+  Widget _featurePill(IconData icon, String label) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+      decoration: BoxDecoration(
+        color: _C.lightLavender,
+        borderRadius: BorderRadius.circular(50),
+        border: Border.all(color: _C.royalBlue.withOpacity(0.12)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, color: _C.royalBlue, size: 18),
+          const SizedBox(width: 8),
+          Text(
+            label,
+            style: GoogleFonts.poppins(
+              fontSize: 12,
+              color: _C.textPrimary,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ],
       ),
     );
   }

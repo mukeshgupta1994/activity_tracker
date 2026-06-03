@@ -224,7 +224,7 @@ class _AgencyPartnerSectionState extends State<AgencyPartnerSection> {
                     ),
                   ),
 
-                  Row(
+                  ResponsiveRow(
                     children: [
                       Expanded(child: buildField(index, 'Agency')),
                       const SizedBox(width: 8),
@@ -234,7 +234,7 @@ class _AgencyPartnerSectionState extends State<AgencyPartnerSection> {
 
                   const SizedBox(height: 8),
 
-                  Row(
+                  ResponsiveRow(
                     children: [
                       Expanded(child: buildField(index, 'Description')),
                       const SizedBox(width: 8),
@@ -253,59 +253,63 @@ class _AgencyPartnerSectionState extends State<AgencyPartnerSection> {
 
       
 
+        const SizedBox(height: 4),
+
+        Align(
+          alignment: Alignment.centerLeft,
+          child: TextButton.icon(
+            onPressed: _addAgencyPartner,
+            icon: Icon(Icons.add_circle_outline, color: Theme.of(context).colorScheme.primary),
+            label: Text(
+              'Add New Agency Partner',
+              style: TextStyle(color: Theme.of(context).colorScheme.primary),
+            ),
+          ),
+        ),
+
         const SizedBox(height: 20),
 
-        Row(
+        ResponsiveRow(
           children: [
-              Expanded(
-                child: CustomButton(
-                          height: 50,
-                          text: 'Add New Agency Partner',
-                          onPressed: _addAgencyPartner,
-                        ),
-              ),
-               const SizedBox(width: 10),
+            const Expanded(child: SizedBox()),
+            const SizedBox(width: 10),
+            const Expanded(child: SizedBox()),
+            const SizedBox(width: 10),
+            const Expanded(child: SizedBox()),
+            const SizedBox(width: 10),
             Expanded(
-              child: CustomButton(
-                height: 50,
-                text: 'Save',
-                onPressed: () async {
-                  if (_agencyPartners.any(
-                      (e) => e['Agency']!.isEmpty ||
-                          e['Medium Type']!.isEmpty)) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content:
-                            Text("Please fill all required fields"),
-                      ),
-                    );
-                    return;
-                  }
+              child: SizedBox(
+                height: 34,
+                child: CustomButton(
+                  text: 'Save',
+                  onPressed: () async {
+                    if (_agencyPartners.any((e) => e['Agency']!.isEmpty || e['Medium Type']!.isEmpty)) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text("Please fill all required fields")),
+                      );
+                      return;
+                    }
 
-                  await widget.vm
-                      .submitAgencyPartners(_agencyPartners);
+                    await widget.vm.submitAgencyPartners(_agencyPartners);
 
-                  if (widget.vm.agencyUpdateStatus.status ==
-                      Status.completed) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Saved Successfully'),
-                        backgroundColor: Colors.green,
-                      ),
-                    );
-                    widget.onSaved?.call();
-                  } else {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(
-                          widget.vm.agencyUpdateStatus.message ??
-                              'Error saving data',
+                    if (widget.vm.agencyUpdateStatus.status == Status.completed) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Saved Successfully'),
+                          backgroundColor: Colors.green,
                         ),
-                        backgroundColor: Colors.red,
-                      ),
-                    );
-                  }
-                },
+                      );
+                      widget.onSaved?.call();
+                    } else {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(widget.vm.agencyUpdateStatus.message ?? 'Error saving data'),
+                          backgroundColor: Colors.red,
+                        ),
+                      );
+                    }
+                  },
+                ),
               ),
             ),
           ],

@@ -1,6 +1,7 @@
 import 'package:activity_tracker/data/remote/response/status.dart';
 import 'package:activity_tracker/viewmodel/activity_dash_view_model.dart';
 import 'package:flutter/material.dart';
+import 'package:activity_tracker/components/components.dart';
 import 'shared_widgets.dart';
 
 class ExecutionElementSection extends StatefulWidget {
@@ -73,99 +74,69 @@ class _ExecutionElementSectionState extends State<ExecutionElementSection> {
           );
         }).toList(),
 
-        
-        SizedBox(height: 20),
-        // ✅ SAVE BUTTON WITH API
+        const SizedBox(height: 4),
+
+        Align(
+          alignment: Alignment.centerLeft,
+          child: TextButton.icon(
+            onPressed: _addExecutionElement,
+            icon: Icon(Icons.add_circle_outline, color: Theme.of(context).colorScheme.primary),
+            label: Text(
+              'Add New Execution Element',
+              style: TextStyle(color: Theme.of(context).colorScheme.primary),
+            ),
+          ),
+        ),
+
+        const SizedBox(height: 20),
+
         if (widget.onSaved != null)
           Padding(
             padding: const EdgeInsets.only(bottom: 12),
-            child: Row(
+            child: ResponsiveRow(
               children: [
+                const Expanded(child: SizedBox()),
+                const SizedBox(width: 10),
+                const Expanded(child: SizedBox()),
+                const SizedBox(width: 10),
+                const Expanded(child: SizedBox()),
+                const SizedBox(width: 10),
                 Expanded(
-                  child: TextButton.icon(
-                            onPressed: _addExecutionElement,
-                            icon: Icon(
-                              Icons.add_circle_outline,
-                              color: Theme.of(context).colorScheme.primary,
-                              size: 20,
+                  child: SizedBox(
+                    height: 34,
+                    child: CustomButton(
+                      text: 'Save',
+                      onPressed: () async {
+                        final data = _prepareApiData();
+
+                        if (data.any((e) => e['title']!.isEmpty)) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text("Please fill all required fields")),
+                          );
+                          return;
+                        }
+
+                        await widget.vm.submitExecutionElements(data);
+
+                        if (widget.vm.executionUpdateStatus.status == Status.completed) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('Saved Successfully'),
+                              backgroundColor: Colors.green,
                             ),
-                            label: const Text(
-                              'Add New Execution Element',
-                              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                          );
+                          widget.onSaved?.call();
+                        } else {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(widget.vm.executionUpdateStatus.message ?? "Error saving data"),
+                              backgroundColor: Colors.red,
                             ),
-                            style: TextButton.styleFrom(
-                              padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 20),
-                              backgroundColor: Theme.of(
-                                context,
-                              ).colorScheme.primary.withOpacity(0.05),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                            ),
-                          ),
-                ),
-        SizedBox(width: 20),
-
-                Expanded(
-                  child: ElevatedButton(
-                    onPressed: () async {
-                      final data = _prepareApiData();
-
-                      // ✅ validation
-                      if (data.any((e) => e['title']!.isEmpty)) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text("Please fill all required fields"),
-                          ),
-                        );
-                        return;
-                      }
-
-                      await widget.vm.submitExecutionElements(data);
-
-                      if (widget.vm.executionUpdateStatus.status ==
-                          Status.completed) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('Saved Successfully'),
-                            backgroundColor: Colors.green,
-                          ),
-                        );
-
-                        // 👉 collapse + next expand
-                        widget.onSaved?.call();
-                      } else {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text(
-                              widget.vm.executionUpdateStatus.message ??
-                                  "Error saving data",
-                            ),
-                            backgroundColor: Colors.red,
-                          ),
-                        );
-                      }
-                    },
-                    //  widget.onSaved,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF2D3A8C),
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(14),
-                      ),
-                      elevation: 0,
-                    ),
-                    child: const Text(
-                      'Save',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.w600,
-                        fontSize: 15,
-                      ),
+                          );
+                        }
+                      },
                     ),
                   ),
-
-                  
                 ),
               ],
             ),

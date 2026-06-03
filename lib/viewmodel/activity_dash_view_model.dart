@@ -68,6 +68,15 @@ class ActivityDashViewModel extends ChangeNotifier {
   //   _documentDate = '';
   //   _periodFrom = '';
   //   _periodTo = '';
+  //   _vehicle = '';
+
+  String _vehicle = '';
+  String get vehicle => _vehicle;
+
+  void setVehicle(String value) {
+    _vehicle = value;
+    notifyListeners();
+  }
 
   // ================== DROPDOWN API ==================
   ApiResponse<ActivityDropDownDetailsResponse> _dropDownStatus =
@@ -105,22 +114,22 @@ class ActivityDashViewModel extends ChangeNotifier {
   List<MediumTypeDetailsList> _mediumList = [];
   List<MediumTypeDetailsList> get mediumList => _mediumList;
 
-  MediumTypeDetailsList? _selectedMedium;
-  MediumTypeDetailsList? get selectedMedium => _selectedMedium;
+  List<MediumTypeDetailsList> _selectedMediums = [];
+  List<MediumTypeDetailsList> get selectedMediums => _selectedMediums;
 
   List<AgencyTypeDetailsList> _agencyList = [];
   List<AgencyTypeDetailsList> get agencyList => _agencyList;
 
-  AgencyTypeDetailsList? _selectedAgency;
-  AgencyTypeDetailsList? get selectedAgency => _selectedAgency;
+  List<AgencyTypeDetailsList> _selectedAgencies = [];
+  List<AgencyTypeDetailsList> get selectedAgencies => _selectedAgencies;
 
-  void setSelectedAgency(AgencyTypeDetailsList value) {
-    _selectedAgency = value;
+  void setSelectedAgencies(List<AgencyTypeDetailsList> values) {
+    _selectedAgencies = values;
     notifyListeners();
   }
 
-  void setSelectedMedium(MediumTypeDetailsList value) {
-    _selectedMedium = value;
+  void setSelectedMediums(List<MediumTypeDetailsList> values) {
+    _selectedMediums = values;
     notifyListeners();
   }
 
@@ -195,9 +204,10 @@ class ActivityDashViewModel extends ChangeNotifier {
     _updateStatus = ApiResponse.none();
     _dropDownStatus = ApiResponse.none();
     _agencyList.clear();
-    _selectedAgency = null;
+    _selectedAgencies.clear();
     _mediumList.clear();
-    _selectedMedium = null;
+    _selectedMediums.clear();
+    _vehicle = '';
     _agencyUpdateStatus = ApiResponse.none();
     // _dashboardList.clear();
     // _dashboardStatus = ApiResponse.none();
